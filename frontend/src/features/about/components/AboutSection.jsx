@@ -109,7 +109,7 @@ export default function AboutSection() {
         className="flex flex-col px-5 w-full order-1 lg:order-3 lg:flex-row lg:items-end"
         title="About Me"
         tagline="Who I am."
-        description={about?.bio || "I'm passionate about building clean, scalable web applications and converting complex challenges into seamless, efficient, and user-centric digital solutions."}
+        description="Travel. Inspire. Think. Innovate. Building digital experiences that connect people and create meaningful impact through technology."
       />
       <FeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </section>
