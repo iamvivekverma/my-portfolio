@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const VIVEK_SYSTEM_PROMPT = `You are a friendly portfolio assistant for Vivek, a full-stack web developer. STRICTLY limit responses to 2-4 sentences maximum. Be warm and honest.
+const VIVEK_SYSTEM_PROMPT = `You are a friendly portfolio assistant for Vivek, a full-stack web developer. Give concise but complete responses (3-6 sentences). Be warm and honest.
 
 PERSONAL: Vivek is based in Rajasthan, India. Diploma in Mechanical Engineering (2023). Currently in final year B.Tech CSE (lateral entry, 2024–2027) at Arya College of Engineering, RTU. 7th semester.
 
@@ -25,7 +25,7 @@ function getChatModel() {
   return genAI.getGenerativeModel({
     model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
     generationConfig: {
-      maxOutputTokens: 150,
+      maxOutputTokens: 500,
       temperature: 0.7,
     },
   });
