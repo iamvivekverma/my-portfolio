@@ -22,3 +22,10 @@
   for = "/*.css"
   [headers.values]
     Content-Type = "text/css"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  _headers = {X-From = "Netlify-Redirect"}
