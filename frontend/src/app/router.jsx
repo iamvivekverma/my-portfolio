@@ -30,7 +30,7 @@ const router = createBrowserRouter([
       { path: "projects", element: withSuspense(<ProjectsSection />) },
       { path: "about", element: withSuspense(<AboutSection />) },
       { path: "experience", element: withSuspense(<ExperienceSection />) },
-      { path: "vivek-admin-portal-2024", element: withSuspense(<Admin />) },
+      { path: "whytiti", element: withSuspense(<Admin />) },
       { path: "locked-project", element: withSuspense(<LockedProject />) },
       { path: "project/:id", element: withSuspense(<ProjectDetail />) },
     ],
