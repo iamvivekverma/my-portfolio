@@ -20,9 +20,9 @@ export default function HeroSection() {
           <div className="flex justify-center w-full h-full">
             <Motion.img
               src={wow ? "./assets/images/woww.svg" : "./assets/images/wow.svg"}
-              className="float sm:w-80 sm:h-80 w-[clamp(12rem,50vw,20rem)] max-[500px]:h-50 h-80 lg:w-110 lg:h-110 md:w-95 md:h-95 absolute top-1/2 -translate-y-1/2 cursor-pointer duration-300 animate-float"
+              className="float sm:w-80 sm:h-80 w-[clamp(12rem,50vw,20rem)] max-[500px]:h-50 h-80 lg:w-110 lg:h-110 md:w-95 md:h-95 absolute top-1/2 -translate-y-1/2 cursor-pointer duration-300"
               animate={{ y: [0, -25, 0], rotate: [0, 4, -4, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               onMouseEnter={() => setWow(true)}
               onMouseLeave={() => setWow(false)}
             />
