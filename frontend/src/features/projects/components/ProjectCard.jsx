@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { useProjects } from '../../../hooks/usePortfolioData';
+import { buildApiUrl } from '../../../services/api';
 
 function SkeletonCard() {
   return (
@@ -23,8 +24,7 @@ export default function ProjectCard() {
     badge: item.badge,
     githubLink: item.githubLink,
     liveLink: item.liveLink,
-    image: item.image,
-    pin: item.pin,
+    image: item.image || (item._id ? buildApiUrl(`/projects/${item._id}/image`) : null),
   }));
 
   const badgeStyle = {
@@ -47,7 +47,7 @@ export default function ProjectCard() {
                 {/* Image placeholder */}
                 <div className="relative rounded-xl overflow-hidden bg-primary/10 h-[300px] flex items-center justify-center flex-shrink-0">
                   {project.image
-                    ? <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+                    ? <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     : <div className="flex flex-col items-center gap-2 text-primary/30">
                         <FaExternalLinkAlt className="text-3xl" />
                         <span className="text-xs font-medium">Project Preview</span>

@@ -4,16 +4,66 @@ const { ProjectModel } = require('../models/ProjectsModel');
 
 const getData = async (req, res) => {
   try {
-    const projects = await ProjectModel.find();
+    const projects = await ProjectModel.find()
+      .select('-image -pin')
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.status(200).json({
       success: true,
-      data: projects, // always return array
+      data: projects,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: [],
+      message: messages.catch_error.msg,
+    });
+  }
+};
+
+const getImageById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid project ID format' });
+    }
+
+    const project = await ProjectModel.findById(id).select('image').lean();
+
+    if (!project?.image) {
+      return res.status(404).json({ success: false, message: 'Project image not found' });
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+
+    if (project.image.startsWith('data:')) {
+      const match = project.image.match(/^data:([^;]+);base64,(.+)$/);
+
+      if (!match) {
+        return res.status(400).json({ success: false, message: 'Invalid project image data' });
+      }
+
+      const [, contentType, base64Data] = match;
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+
+      res.setHeader('Content-Type', contentType);
+      return res.send(imageBuffer);
+    }
+
+    if (
+      project.image.startsWith('http://') ||
+      project.image.startsWith('https://') ||
+      project.image.startsWith('/')
+    ) {
+      return res.redirect(project.image);
+    }
+
+    return res.status(400).json({ success: false, message: 'Invalid project image format' });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
       message: messages.catch_error.msg,
     });
   }
@@ -27,7 +77,7 @@ const getDataById = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid project ID format' });
     }
 
-    const project = await ProjectModel.findById(id);
+    const project = await ProjectModel.findById(id).select('-pin');
 
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
@@ -159,4 +209,4 @@ const verifyPin = async (req, res) => {
   }
 };
 
-module.exports = { getData, getDataById, createData, updateData, deleteData, verifyPin };
+module.exports = { getData, getImageById, getDataById, createData, updateData, deleteData, verifyPin };
