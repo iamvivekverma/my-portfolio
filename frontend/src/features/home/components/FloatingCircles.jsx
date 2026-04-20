@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SvgText from "./SvgText";
-import { motion as Motion } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const BASE_SIZE = 200;
-
 const NAV_CIRCLES = [
   {
     size: { base: 100, md: 140, lg: 160 },
@@ -98,79 +97,68 @@ export default function FloatingCircles({ setWow }) {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    const handleResize = () => setScreenWidth(window.innerWidth);
+    let timeoutId = null;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setScreenWidth(window.innerWidth);
+      }, 50); 
+    };
+
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
-  const getSize = (size) => {
-    if (screenWidth < 500) return size.base;
-    if (screenWidth < 1024) return size.md;
-    return size.lg;
-  };
-
-  const getTextPosition = (textPosition) => {
-    if (screenWidth < 500) return textPosition.base;
-    if (screenWidth < 1024) return textPosition.md;
-    return textPosition.lg;
-  };
-
   const isMobile = screenWidth < 1024;
+  const currentSizeKey = screenWidth < 500 ? "base" : isMobile ? "md" : "lg";
 
   return (
     <div className="absolute inset-0">
-      {/* FLOATING */}
       {FLOATING_CIRCLES.map((circle, index) => {
-  const dynamicSize = getSize(circle.size);
-
-  return (
-    <Motion.div
-      key={index}
-      className={`absolute rounded-full z-10 ${
-        circle.special
-          ? "bg-[#ffa102] lg:bg-[#ffc760]"
-          : "bg-[#fdcb6e]"
-      }`}
-      style={{
-        width: dynamicSize,
-        height: dynamicSize,
-        top: circle.top,
-        left: circle.left,
-      }}
-
-      animate={{
-        y: [0, -15 - index * 8, 0],  
-        x: [0, index % 2 === 0 ? 20 : -20, 0], 
-      }}
-
-      transition={{
-        duration: 2 + index * 0.3,  
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  );
-})}
+        const dynamicSize = circle.size[currentSizeKey];
+        return (
+          <Motion.div
+            key={`float-${index}`}
+            className={`absolute rounded-full z-10 ${
+              circle.special ? "bg-[#ffa102] lg:bg-[#ffc760]" : "bg-[#fdcb6e]"
+            }`}
+            style={{
+              width: dynamicSize,
+              height: dynamicSize,
+              top: circle.top,
+              left: circle.left,
+            }}
+            animate={{
+              y: [0, -15 - index * 8, 0],
+              x: [0, index % 2 === 0 ? 20 : -20, 0],
+            }}
+            transition={{
+              duration: 2 + index * 0.3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
 
       {NAV_CIRCLES.map((circle, index) => {
-        const dynamicSize = getSize(circle.size);
+        const dynamicSize = circle.size[currentSizeKey];
         const scaleFactor = dynamicSize / BASE_SIZE;
-        const dynamicTextPosition = getTextPosition(circle.textPosition);
+        const textPos = circle.textPosition[currentSizeKey];
 
         return (
           <Link key={circle.path} to={circle.path}>
             <Motion.div
-              className="absolute cursor-pointer z-20 
-                         bg-fill lg:bg-[#ffa102] lg:hover:bg-fill
-                         flex items-center justify-center
-                         rounded-full group overflow-visible"
+              className="absolute cursor-pointer z-20 bg-fill lg:bg-[#ffa102] lg:hover:bg-fill flex items-center justify-center rounded-full group"
               style={{
                 width: dynamicSize,
                 height: dynamicSize,
                 top: circle.top,
                 left: circle.left,
-                transform:
-                  activeCircle === index && !isMobile
+                transform: activeCircle === index && !isMobile
                     ? `scale(${circle.scale})`
                     : "scale(1)",
                 transition: 'transform 0.3s ease'
@@ -194,35 +182,28 @@ export default function FloatingCircles({ setWow }) {
                 setActiveCircle(null);
               }}
             >
-            {/* IMAGE */}
-            <Motion.img
-              src={circle.image.src}
-              alt={circle.image.alt}
-              className="absolute block lg:hidden lg:group-hover:block"
-              style={{
-                width: 130 * scaleFactor,
-                height: 130 * scaleFactor,
-                left: circle.image.left * scaleFactor,
-                top: circle.image.top * scaleFactor,
-              }}
-              initial={{ opacity: 0, scale: 0.8, y: 40 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            />
+              <Motion.img
+                src={circle.image.src}
+                alt={circle.image.alt}
+                className="absolute block lg:hidden lg:group-hover:block"
+                style={{
+                  width: 130 * scaleFactor,
+                  height: 130 * scaleFactor,
+                  left: circle.image.left * scaleFactor,
+                  top: circle.image.top * scaleFactor,
+                }}
+                initial={{ opacity: 0, scale: 0.8, y: 40 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              />
 
-            {/* TEXT */}
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{
-                transform: `translate(
-                  ${dynamicTextPosition.x * scaleFactor}px,
-                  ${dynamicTextPosition.y * scaleFactor}px
-                )`,
-              }}
-            >
-              <SvgText scale={scaleFactor}>
-                {circle.name}
-              </SvgText>
-            </div>
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{
+                  transform: `translate(${textPos.x * scaleFactor}px, ${textPos.y * scaleFactor}px)`,
+                }}
+              >
+                <SvgText scale={scaleFactor}>{circle.name}</SvgText>
+              </div>
             </Motion.div>
           </Link>
         );

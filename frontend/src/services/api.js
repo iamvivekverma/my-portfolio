@@ -82,6 +82,12 @@ export const portfolioApi = {
   updateExperience: (id, data) => api.put(`/experience/${id}`, data),
   deleteExperience: (id) => api.delete(`/experience/${id}`),
 
+  // Achievements
+  getAchievements: () => api.get('/achievements'),
+  createAchievement: (data) => api.post('/achievements', data),
+  updateAchievement: (id, data) => api.put(`/achievements/${id}`, data),
+  deleteAchievement: (id) => api.delete(`/achievements/${id}`),
+
   // Feedback
   submitFeedback: (data) => api.post('/feedback', data),
 

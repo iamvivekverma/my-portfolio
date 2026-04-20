@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FaLinkedin, FaGithub, FaInstagram, FaYoutube, FaComment } from 'react-icons/fa';
+import { FaLinkedin, FaGithub, FaInstagram, FaYoutube, FaComment, FaTrophy } from 'react-icons/fa';
 import SectionFooter from '../../../shared/components/SectionFooter';
 import FeedbackForm from '../../../shared/components/FeedbackForm';
+import AchievementsSection from '../../achievements/components/AchievementsSection';
 import { useAbout } from '../../../hooks/usePortfolioData';
 
 function LiveCounter() {
@@ -25,6 +26,19 @@ function LiveCounter() {
 export default function AboutSection() {
   const { data: about } = useAbout();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+
+  // Prevent body scroll when achievements modal is open
+  useEffect(() => {
+    if (showAchievements) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showAchievements]);
 
   const email = about?.email || 'iamvivek.verma@icloud.com';
   const bio = about?.bio || 'Turning complex user problems into seamless digital products. With a focus on the MERN stack and clean UX, I build applications that scale with your users. I don\'t just write code; I build solutions that matter.';
@@ -55,8 +69,18 @@ export default function AboutSection() {
           </div>
           <div className="lg:col-span-4 border bg-[var(--color-accent)] border-primary/20 text-primary p-5 rounded-2xl flex flex-col">
             <h2 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)" }}>Vivek</h2>
-            <p className="text-sm text-primary/55 mt-0.5 font-medium">Full-Stack Web Developer</p>
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-primary/55 font-medium">Full-Stack Web Developer</p>
+              <button
+                onClick={() => setShowAchievements(true)}
+                className="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center hover:bg-primary hover:border-primary hover:shadow-lg transition-all duration-300 group shadow-md cursor-pointer"
+                title="View Achievements"
+              >
+                <FaTrophy className="text-xl text-primary group-hover:text-white transition-colors" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
@@ -87,7 +111,6 @@ export default function AboutSection() {
           </div>
         </div>
       </div>
-
       <div className='flex  px-5 w-full order-1 lg:order-3 lg:flex-row lg:items-end'>
         <SectionFooter
           className="lg:flex w-full lg:items-end"
@@ -126,6 +149,28 @@ export default function AboutSection() {
       </div>
 
       <FeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
+      {/* Achievements Modal */}
+      {showAchievements && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-[var(--color-bg)] rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-primary/10">
+              <h2 className="text-2xl font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
+                My Achievements
+              </h2>
+              <button
+                onClick={() => setShowAchievements(false)}
+                className="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group"
+              >
+                <span className="text-2xl text-primary group-hover:text-white">×</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <AchievementsSection />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

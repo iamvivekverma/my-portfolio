@@ -6,7 +6,7 @@ const { apiRouter } = require('./routes');
 const app = express();
 
 function getAllowedOrigins() {
-  const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173';
+  const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173,http://localhost:5174';
 
   return rawOrigins
     .split(',')
@@ -18,6 +18,11 @@ app.use(
   cors({
     origin(origin, callback) {
       const allowedOrigins = getAllowedOrigins();
+
+      // Allow all origins for development
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
 
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);

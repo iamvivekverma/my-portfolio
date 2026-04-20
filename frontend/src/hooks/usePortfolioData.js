@@ -46,3 +46,12 @@ export function useExperience() {
 
   return useApiResource(loader, { initialData: [] });
 }
+
+export function useAchievements() {
+  const loader = useCallback(async () => {
+    const res = await portfolioApi.getAchievements();
+    return res?.data || [];
+  }, []);
+
+  return useApiResource(loader, { initialData: [] });
+}

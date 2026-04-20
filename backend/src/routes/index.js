@@ -4,6 +4,7 @@ const { AboutRouter } = require('./AboutRoute');
 const { FeedbackRouter } = require('./FeedbackRoute');
 const { SkillsRouter } = require('./SkillsRoute');
 const { ExperienceRouter } = require('./ExperienceRoute');
+const { AchievementsRouter } = require('./AchievementsRoute');
 const { ChatbotRouter } = require('./chatbot.route');
 const { AdminRouter } = require('./AdminRoute');
 
@@ -14,6 +15,7 @@ apiRouter.use('/about', AboutRouter);
 apiRouter.use('/feedback', FeedbackRouter);
 apiRouter.use('/skills', SkillsRouter);
 apiRouter.use('/experience', ExperienceRouter);
+apiRouter.use('/achievements', AchievementsRouter);
 apiRouter.use('/chatbot', ChatbotRouter);
 apiRouter.use('/admin', AdminRouter);
 
