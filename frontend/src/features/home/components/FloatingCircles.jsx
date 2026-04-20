@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import SvgText from "./SvgText";
-import { motion as Motion, AnimatePresence } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const BASE_SIZE = 200;
@@ -93,7 +93,6 @@ const FLOATING_CIRCLES = [
 ];
 
 export default function FloatingCircles({ setWow }) {
-  const [activeCircle, setActiveCircle] = useState(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -152,34 +151,30 @@ export default function FloatingCircles({ setWow }) {
         return (
           <Link key={circle.path} to={circle.path}>
             <Motion.div
-              className="absolute cursor-pointer z-20 bg-fill lg:bg-[#ffa102] lg:hover:bg-fill flex items-center justify-center rounded-full group"
+              className="absolute cursor-pointer z-20 bg-fill lg:bg-[#ffa102] lg:hover:bg-fill flex items-center justify-center rounded-full group will-change-transform"
               style={{
                 width: dynamicSize,
                 height: dynamicSize,
                 top: circle.top,
                 left: circle.left,
-                transform: activeCircle === index && !isMobile
-                    ? `scale(${circle.scale})`
-                    : "scale(1)",
-                transition: 'transform 0.3s ease'
               }}
               animate={{
                 y: [0, -12 - index * 3, 0],
                 x: [0, index % 2 === 0 ? 10 : -10, 0],
               }}
+              whileHover={!isMobile ? { scale: circle.scale } : undefined}
               transition={{
                 duration: 2.5 + index * 0.3,
                 repeat: Infinity,
                 ease: "easeInOut",
                 delay: index * 0.1,
+                scale: { duration: 0.25, repeat: 0 },
               }}
               onMouseEnter={() => {
                 setWow(true);
-                setActiveCircle(index);
               }}
               onMouseLeave={() => {
                 setWow(false);
-                setActiveCircle(null);
               }}
             >
               <Motion.img

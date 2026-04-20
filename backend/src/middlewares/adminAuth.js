@@ -23,7 +23,7 @@ function validateAdminSecret(provided) {
     return secret;
   }
 
-  if (!provided || provided !== secret.value) {
+  if (!safeCompare(provided, secret.value)) {
     return {
       ok: false,
       status: 401,
@@ -36,6 +36,20 @@ function validateAdminSecret(provided) {
 
 function signToken(payload, secret) {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex');
+}
+
+function safeCompare(provided, expected) {
+  if (!provided || typeof provided !== 'string') {
+    return false;
+  }
+
+  const providedBuffer = Buffer.from(provided);
+  const expectedBuffer = Buffer.from(expected);
+
+  return (
+    providedBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(providedBuffer, expectedBuffer)
+  );
 }
 
 function createAdminToken() {
@@ -82,11 +96,8 @@ function verifyAdminToken(token) {
   }
 
   const expected = signToken(expiresAt, secret.value);
-  const isValidSignature =
-    signature.length === expected.length &&
-    crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 
-  if (!isValidSignature) {
+  if (!safeCompare(signature, expected)) {
     return {
       ok: false,
       status: 401,

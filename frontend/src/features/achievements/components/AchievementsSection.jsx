@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from "react";
+import React, { memo } from "react";
 import { useAchievements } from "../../../hooks/usePortfolioData";
 
 
@@ -23,10 +23,8 @@ const CertCard = memo(({ cert, index }) => {
   const isWinner = cert.isWinner;
 
   // Pre-generate WhatsApp link to keep render method clean
-  const shareLink = useMemo(() => {
-    const msg = `Hey Vivek, I'd like to verify your certificate: ${cert.title} from ${cert.issuer}.`;
-    return `https://wa.me/917209640726?text=${encodeURIComponent(msg)}`;
-  }, [cert.title, cert.issuer]);
+  const msg = `Hey Vivek, I'd like to verify your certificate: ${cert.title} from ${cert.issuer}.`;
+  const shareLink = cert.verifyUrl || `https://wa.me/917209640726?text=${encodeURIComponent(msg)}`;
 
   return (
     <div 
@@ -66,10 +64,9 @@ const CertCard = memo(({ cert, index }) => {
           </h3>
         </div>
 
-        <p 
-          className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-4"
-          dangerouslySetInnerHTML={{ __html: cert.description }}
-        />
+        <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-4">
+          {cert.description}
+        </p>
 
         {/* Footer */}
         <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
@@ -105,30 +102,17 @@ const CertCard = memo(({ cert, index }) => {
 });
 
 export default function AchievementsSection() {
-  const [activeFilter, setActiveFilter] = useState("all");
   const { data: achievements = [], loading } = useAchievements();
-
-  // 1. Logic: Standardized filter keys
-  const filterKeys = ["all", "winner", "hackathon", "wscube"];
-
-  // 2. Performance: Memoized Filtering
-  const filteredData = useMemo(() => {
-    if (activeFilter === "all") return achievements;
-    return achievements.filter(item => 
-      item.category?.includes(activeFilter) || 
-      (activeFilter === "winner" && item.isWinner)
-    );
-  }, [achievements, activeFilter]);
 
   return (
     <>
       <style>{SCROLL_STYLES}</style>
       
-      <section className="relative px-4 lg:px-6 overflow-hidden">
+      <section className="relative px-4 lg:px-6">
         <div className="max-w-7xl mx-auto">
           
           {/* Section Header */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-8 mb-4 lg:mb-8">
+          <div className="flex flex-row items-center justify-between gap-4 lg:gap-8 mb-4 lg:mb-8">
             <div>
               <div className="flex items-center gap-3 mb-2 lg:mb-4">
                 <span className="w-8 lg:w-10 h-[2px] bg-amber-400 rounded-full" />
@@ -143,34 +127,17 @@ export default function AchievementsSection() {
                 </span>
               </h2>
             </div>
-
-            {/* Filter UI */}
-            <div className="flex flex-wrap gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-200 self-start">
-              {filterKeys.map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveFilter(key)}
-                  className={`px-4 lg:px-6 py-2 lg:py-2.5 rounded-xl text-[10px] lg:text-[11px] font-black uppercase tracking-widest transition-all duration-200
-                    ${activeFilter === key 
-                      ? "bg-slate-900 text-amber-400 shadow-md scale-105" 
-                      : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                  {key}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Scrolling Content */}
-          <div className="custom-scrollbar flex gap-4 md:gap-6 lg:gap-8 overflow-x-auto pb-4 lg:pb-8 snap-x snap-mandatory">
+          <div className="custom-scrollbar flex gap-4 md:gap-6 lg:gap-8 overflow-x-auto pt-8 pb-4 lg:pb-8 snap-x snap-mandatory">
             {loading ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className="flex-shrink-0 w-[320px] md:w-[400px] h-[400px] bg-slate-100 animate-pulse rounded-2xl" />
               ))
             ) : (
               <>
-                {filteredData.map((cert, i) => (
+                {achievements.map((cert, i) => (
                   <CertCard key={cert._id || i} cert={cert} index={i} />
                 ))}
                 {/* Scroll-end spacer */}

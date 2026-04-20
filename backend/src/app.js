@@ -1,9 +1,17 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const { apiRouter } = require('./routes');
 
 const app = express();
+
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+function isProduction() {
+  return process.env.NODE_ENV === 'production';
+}
 
 function getAllowedOrigins() {
   const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173,http://localhost:5174';
@@ -34,8 +42,30 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: '12mb' }));
-app.use(express.urlencoded({ extended: true, limit: '12mb' }));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'none'"],
+        formAction: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: false,
+    referrerPolicy: {
+      policy: 'strict-origin-when-cross-origin',
+    },
+  }),
+);
+
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+
+app.use(express.json({ limit: '6mb' }));
+app.use(express.urlencoded({ extended: true, limit: '6mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use('/api', apiRouter);
@@ -48,7 +78,28 @@ app.use((error, req, res, next) => {
     });
   }
 
-  return next(error);
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON payload.',
+    });
+  }
+
+  if (error?.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'Origin not allowed.',
+    });
+  }
+
+  if (!isProduction()) {
+    console.error(error);
+  }
+
+  return res.status(error?.status || 500).json({
+    success: false,
+    message: isProduction() ? 'Something went wrong.' : error?.message || 'Something went wrong.',
+  });
 });
 
 app.use((req, res) => {

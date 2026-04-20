@@ -123,8 +123,6 @@ h1, h2, h3, h4, h5, h6 {
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 .horizontal-scroll { touch-action: pan-x; user-select: none; }
-.float:hover { transform: scale(1.1); }
-
 .animate-slide { animation: slide 4s linear infinite; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
@@ -163,7 +161,3 @@ h1, h2, h3, h4, h5, h6 {
 
 svg { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 svg text { font-kerning: normal; text-rendering: optimizeLegibility; }
-
-.react-tooltip { transition: transform 0.2s ease, opacity 0.2s ease; }
-
-

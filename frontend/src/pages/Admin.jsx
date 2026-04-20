@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { portfolioApi } from "../services/api";
+import { buildApiUrl, portfolioApi } from "../services/api";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api").trim().replace(/\/+$/, "");
 const ADMIN_TOKEN_KEY = "portfolio_admin_token";
 
 const sections = [
   { key: "projects", label: "Projects" },
   { key: "skills", label: "Skills" },
   { key: "experience", label: "Experience" },
+  { key: "achievements", label: "Achievements" },
   { key: "about", label: "About" },
 ];
-
-function buildApiUrl(path) {
-  return `${API_BASE}/${path.replace(/^\/+/, "")}`;
-}
 
 async function readResponseBody(response) {
   const text = await response.text();
@@ -85,6 +81,46 @@ function createAboutFormState(initial) {
   };
 }
 
+function createEmptyAchievementForm() {
+  return {
+    title: "",
+    type: "",
+    issuer: "",
+    issuerLogo: "",
+    date: "",
+    category: "",
+    badgeLabel: "",
+    badgeStyle: "",
+    isWinner: false,
+    description: "",
+    skills: "",
+    verifyUrl: "",
+    order: 0,
+  };
+}
+
+function createAchievementFormState(initial) {
+  if (!initial) {
+    return createEmptyAchievementForm();
+  }
+
+  return {
+    title: initial.title || "",
+    type: initial.type || "",
+    issuer: initial.issuer || "",
+    issuerLogo: initial.issuerLogo || "",
+    date: initial.date || "",
+    category: initial.category?.join(", ") || "",
+    badgeLabel: initial.badgeLabel || "",
+    badgeStyle: initial.badgeStyle || "",
+    isWinner: Boolean(initial.isWinner),
+    description: initial.description || "",
+    skills: initial.skills?.join(", ") || "",
+    verifyUrl: initial.verifyUrl || "",
+    order: initial.order || 0,
+  };
+}
+
 export default function Admin() {
   const [adminToken, setAdminToken] = useState(() => getStoredAdminToken());
   const [loginPassword, setLoginPassword] = useState("");
@@ -98,6 +134,7 @@ export default function Admin() {
     projects: [],
     skills: [],
     experience: [],
+    achievements: [],
     about: null,
   });
 
@@ -112,6 +149,7 @@ export default function Admin() {
       projects: [],
       skills: [],
       experience: [],
+      achievements: [],
       about: null,
     });
     setLoginError(message);
@@ -283,6 +321,30 @@ export default function Admin() {
     }
   };
 
+  const handleAchievementCreate = async (payload) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const { res, body } = await runAuthedRequest("achievements", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setSuccess("Achievement created successfully!");
+        setTimeout(() => setSuccess(""), 3000);
+        fetchData("achievements");
+      } else {
+        setError(body?.message || "Failed to create achievement");
+      }
+    } catch (requestError) {
+      setError(`Error creating achievement: ${requestError.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAboutSave = async (payload) => {
     setLoading(true);
     setError("");
@@ -368,6 +430,7 @@ export default function Admin() {
     projects: ProjectForm,
     skills: SkillForm,
     experience: ExperienceForm,
+    achievements: AchievementForm,
     about: AboutForm,
   }[active];
 
@@ -481,12 +544,14 @@ export default function Admin() {
                 projects: handleProjectCreate,
                 skills: handleSkillCreate,
                 experience: handleExperienceCreate,
+                achievements: handleAchievementCreate,
                 about: handleAboutSave,
               }[active]}
               onUpdate={{
                 projects: (id, formData) => handleUpdate("projects", id, formData),
                 skills: (id, formData) => handleUpdate("skills", id, formData),
                 experience: (id, formData) => handleUpdate("experience", id, formData),
+                achievements: (id, formData) => handleUpdate("achievements", id, formData),
               }[active]}
               initial={formInitial}
               isEditing={active !== "about" && editingItem?.resource === active}
@@ -498,7 +563,7 @@ export default function Admin() {
           <div className="bg-white border border-primary/10 rounded-2xl p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-primary mb-4">Existing Items</h3>
 
-            {["projects", "skills", "experience"].includes(active) &&
+            {["projects", "skills", "experience", "achievements"].includes(active) &&
               (data[active]?.length ? (
                 <ul className="space-y-2">
                   {data[active].map((item) => (
@@ -507,7 +572,7 @@ export default function Admin() {
                       className="flex items-center justify-between bg-primary/5 border border-primary/10 rounded-xl px-4 py-3"
                     >
                       <span className="text-sm text-primary font-medium">
-                        {item.title || item.name || item.year}
+                        {item.title || item.name || item.year || item.issuer}
                       </span>
                       <div className="flex gap-2">
                         <button
@@ -772,6 +837,99 @@ function ExperienceForm({ onCreate, loading }) {
       >
         {loading ? "Saving..." : "Save Experience"}
       </button>
+    </form>
+  );
+}
+
+function AchievementForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loading }) {
+  const [form, setForm] = useState(() => createAchievementFormState(initial));
+  const [submitError, setSubmitError] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitError("");
+
+    const payload = {
+      title: form.title.trim(),
+      type: form.type.trim(),
+      issuer: form.issuer.trim(),
+      issuerLogo: form.issuerLogo.trim() || null,
+      date: form.date.trim(),
+      category: form.category
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      badgeLabel: form.badgeLabel.trim() || null,
+      badgeStyle: form.badgeStyle.trim() || null,
+      isWinner: form.isWinner,
+      description: form.description.trim() || null,
+      skills: form.skills
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      verifyUrl: form.verifyUrl.trim() || null,
+      order: Number(form.order) || 0,
+    };
+
+    if (!payload.title || !payload.type || !payload.issuer || !payload.date) {
+      setSubmitError("Title, type, issuer, and date are required.");
+      return;
+    }
+
+    if (isEditing && initial?._id) {
+      onUpdate(initial._id, payload);
+      return;
+    }
+
+    onCreate(payload);
+    setForm(createEmptyAchievementForm());
+  };
+
+  return (
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      {submitError && (
+        <div className="rounded-xl border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
+      <Input label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} />
+      <Input label="Type (certificate, award, hackathon)" value={form.type} onChange={(value) => setForm({ ...form, type: value })} />
+      <Input label="Issuer" value={form.issuer} onChange={(value) => setForm({ ...form, issuer: value })} />
+      <Input label="Issuer Logo Text" value={form.issuerLogo} onChange={(value) => setForm({ ...form, issuerLogo: value })} />
+      <Input label="Date" value={form.date} onChange={(value) => setForm({ ...form, date: value })} />
+      <Input label="Categories (comma separated)" value={form.category} onChange={(value) => setForm({ ...form, category: value })} />
+      <Input label="Badge Label" value={form.badgeLabel} onChange={(value) => setForm({ ...form, badgeLabel: value })} />
+      <Input label="Badge Style" value={form.badgeStyle} onChange={(value) => setForm({ ...form, badgeStyle: value })} />
+      <Textarea label="Description" value={form.description} onChange={(value) => setForm({ ...form, description: value })} />
+      <Input label="Skills (comma separated)" value={form.skills} onChange={(value) => setForm({ ...form, skills: value })} />
+      <Input label="Verify URL" value={form.verifyUrl} onChange={(value) => setForm({ ...form, verifyUrl: value })} />
+      <Input label="Order" type="number" value={form.order} onChange={(value) => setForm({ ...form, order: Number(value) })} />
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={form.isWinner}
+          onChange={(e) => setForm({ ...form, isWinner: e.target.checked })}
+          className="w-4 h-4"
+        />
+        <label className="text-sm text-primary">Winner badge</label>
+      </div>
+      <div className="flex gap-3">
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="bg-gray-100 text-primary px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          disabled={loading}
+          className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+        >
+          {loading ? "Saving..." : isEditing ? "Update Achievement" : "Save Achievement"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -7,6 +7,9 @@ pnpm-debug.log*
 
 # Environment variables
 .env
+.env*
+!.env.example
+!**/.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -103,3 +106,11 @@ Thumbs.db
 # Backup files
 *.backup
 *.bak
+backup/
+
+# Private keys and certificates
+*.pem
+*.key
+*.cert
+*.crt
+*.p12

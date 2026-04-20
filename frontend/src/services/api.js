@@ -1,7 +1,11 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').trim().replace(/\/+$/, '');
+export const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').trim().replace(/\/+$/, '');
+
+export function buildApiUrl(path) {
+  return `${API_BASE}/${path.replace(/^\/+/, '')}`;
+}
 
 async function request(endpoint, options = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const response = await fetch(buildApiUrl(endpoint), options);
   const text = await response.text();
   let payload = null;
 
@@ -14,7 +18,7 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.message || `HTTP error! status: ${response.status}`);
+    throw new Error(payload?.message || payload?.error || `HTTP error! status: ${response.status}`);
   }
 
   return payload;
@@ -27,25 +31,25 @@ export const api = {
   // Generic POST request
   post: (endpoint, data, options = {}) =>
     request(endpoint, {
+      ...options,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(options.headers || {}),
       },
       body: JSON.stringify(data),
-      ...options,
     }),
 
   // Generic PUT request
   put: (endpoint, data, options = {}) =>
     request(endpoint, {
+      ...options,
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         ...(options.headers || {}),
       },
       body: JSON.stringify(data),
-      ...options,
     }),
 
   // Generic DELETE request
@@ -92,7 +96,8 @@ export const portfolioApi = {
   submitFeedback: (data) => api.post('/feedback', data),
 
   // Chatbot
-  chatbot: (message) => api.post('/chatbot/chat', { message }),
+  chatbot: (message, conversationHistory = [], options) =>
+    api.post('/chatbot/chat', { message, conversationHistory }, options),
 
   // Admin
   verifyAdminSecret: (secret) =>

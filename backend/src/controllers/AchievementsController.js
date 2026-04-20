@@ -15,6 +15,10 @@ const createData = async (req, res) => {
     const item = await AchievementsModel.create(req.body);
     res.status(201).json({ success: true, data: item });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
     res.status(500).json({ success: false, message: messages.catch_error.msg });
   }
 };
@@ -22,10 +26,17 @@ const createData = async (req, res) => {
 const updateData = async (req, res) => {
   try {
     const { id } = req.params;
-    const item = await AchievementsModel.findByIdAndUpdate(id, req.body, { new: true });
+    const item = await AchievementsModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     if (!item) return res.status(404).json({ success: false, message: messages.not_found.msg });
     res.json({ success: true, data: item });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
     res.status(500).json({ success: false, message: messages.catch_error.msg });
   }
 };

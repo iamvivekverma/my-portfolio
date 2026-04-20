@@ -26,7 +26,7 @@ PORT=3000
 NODE_ENV=development
 
 # CORS Configuration
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URLS=http://localhost:5173,https://your-vercel-domain.vercel.app
 
 # Google Gemini Configuration
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -57,6 +57,10 @@ npm start   # runs src/server.js
 ## Database
 
 Uses MongoDB with Mongoose ODM. Make sure MongoDB is running locally or update `MONGODB_URI` for cloud database.
+
+## Render + Vercel Notes
+
+When the frontend is deployed to Vercel, add the Vercel domain to `FRONTEND_URLS` on Render. Keep `VITE_API_BASE_URL` on Vercel pointed at the Render API URL, including `/api`.
 
 ## Folder Structure (backend)
 

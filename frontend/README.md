@@ -10,7 +10,7 @@ npm install
 ```
 
 ### 2. Environment Setup
-Create a `.env` file in the root directory:
+Create a `.env` file in the `frontend` directory:
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
@@ -42,14 +42,14 @@ npm run build
 - Tailwind CSS 4
 - React Router DOM
 - Framer Motion
-- GSAP
 - Lucide React
-- Axios
 
 ## Deployment
 
 This frontend is designed to be deployed on Vercel.
 
 1. Connect your GitHub repository to Vercel
-2. Set environment variable: `VITE_API_BASE_URL`
+2. Set environment variable: `VITE_API_BASE_URL=https://your-render-backend.onrender.com/api`
 3. Vercel will automatically build and deploy
+
+The repo-level `vercel.json` builds `frontend` and serves `frontend/dist`, so the default Vercel settings do not need to be changed manually.

@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
+import { portfolioApi } from "../../../services/api";
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:3000" : "")
-).replace(/\/$/, "");
 const REQUEST_TIMEOUT_MS = 15000;
 
 const VIVEK_SYSTEM_PROMPT = `You are a friendly portfolio assistant for Vivek, a full-stack web developer. Answer visitor questions about Vivek naturally and concisely. STRICTLY limit responses to 2-4 sentences maximum. Be warm, enthusiastic, and honest.
@@ -124,21 +122,13 @@ export default function ChatBot() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/chatbot/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          message: userText,
-          conversationHistory: newMessages.map((m) => ({ role: m.role, content: m.content })),
-        }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "Chat request failed");
-      }
+      const data = await portfolioApi.chatbot(
+        userText,
+        newMessages.map((m) => ({ role: m.role, content: m.content })),
+        {
+          signal: controller.signal,
+        },
+      );
 
       const reply = data.response || "Sorry, I couldn't get a response. Try again!";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
