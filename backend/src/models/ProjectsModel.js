@@ -25,6 +25,10 @@ const projectSchema = new Schema({
     type: String,
     default: null  // Image URL or base64
   },
+  order: {
+    type: Number,
+    default: 0  // Display order
+  },
   createdAt: {
     type: Date,
     default: Date.now

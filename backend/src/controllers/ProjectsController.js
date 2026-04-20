@@ -6,7 +6,7 @@ const getData = async (req, res) => {
   try {
     const projects = await ProjectModel.find()
       .select('-image -pin')
-      .sort({ createdAt: -1 })
+      .sort({ order: 1 })
       .lean();
 
     res.status(200).json({
@@ -209,4 +209,27 @@ const verifyPin = async (req, res) => {
   }
 };
 
-module.exports = { getData, getImageById, getDataById, createData, updateData, deleteData, verifyPin };
+const reorderProjects = async (req, res) => {
+  try {
+    const { orders } = req.body; // Array of { id, order }
+
+    if (!Array.isArray(orders)) {
+      return res.status(400).json({ success: false, message: 'Orders must be an array' });
+    }
+
+    const bulkOps = orders.map(({ id, order }) => ({
+      updateOne: {
+        filter: { _id: id },
+        update: { order }
+      }
+    }));
+
+    await ProjectModel.bulkWrite(bulkOps);
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: messages.catch_error.msg });
+  }
+};
+
+module.exports = { getData, getImageById, getDataById, createData, updateData, deleteData, verifyPin, reorderProjects };

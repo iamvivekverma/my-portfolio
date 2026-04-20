@@ -1,5 +1,75 @@
 import { useCallback, useEffect, useState } from "react";
 import { buildApiUrl, portfolioApi } from "../services/api";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { FaGripVertical } from 'react-icons/fa';
+
+function SortableProjectItem({ item, onEdit, onDelete }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between bg-primary/5 border border-primary/10 rounded-xl px-4 py-3"
+    >
+      <div className="flex items-center gap-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-primary/30 hover:text-primary/50"
+          title="Drag to reorder"
+        >
+          <FaGripVertical />
+        </div>
+        <span className="text-sm text-primary font-medium">
+          {item.title || item.name || item.year || item.issuer}
+        </span>
+      </div>
+      <div className="flex gap-2">
+        <button
+          className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors"
+          onClick={() => onEdit(item)}
+        >
+          Edit
+        </button>
+        <button
+          className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded-lg hover:bg-red-200 transition-colors"
+          onClick={() => onDelete(item._id)}
+        >
+          Delete
+        </button>
+      </div>
+    </li>
+  );
+}
 
 const ADMIN_TOKEN_KEY = "portfolio_admin_token";
 
@@ -426,6 +496,35 @@ export default function Admin() {
     }
   };
 
+  const handleReorder = async (resource, newOrder) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const orders = newOrder.map((item, index) => ({
+        id: item._id,
+        order: index,
+      }));
+
+      const { res, body } = await runAuthedRequest(`${resource}/reorder`, {
+        method: "POST",
+        body: JSON.stringify({ orders }),
+      });
+
+      if (res.ok) {
+        setSuccess("Order updated successfully!");
+        setTimeout(() => setSuccess(""), 3000);
+        setData((prev) => ({ ...prev, [resource]: newOrder }));
+      } else {
+        setError(body?.message || "Failed to update order");
+      }
+    } catch (requestError) {
+      setError(`Error updating order: ${requestError.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const Forms = {
     projects: ProjectForm,
     skills: SkillForm,
@@ -437,6 +536,13 @@ export default function Admin() {
   const formInitial =
     active === "about" ? data.about : editingItem?.resource === active ? editingItem.item : null;
   const formKey = `${active}:${formInitial?._id || "new"}`;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   if (!isLoggedIn) {
     return (
@@ -563,8 +669,35 @@ export default function Admin() {
           <div className="bg-white border border-primary/10 rounded-2xl p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-primary mb-4">Existing Items</h3>
 
-            {["projects", "skills", "experience", "achievements"].includes(active) &&
-              (data[active]?.length ? (
+            {active === "projects" && data.projects?.length ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) => {
+                  const { active, over } = event;
+                  if (active.id !== over?.id) {
+                    const oldIndex = data.projects.findIndex((item) => item._id === active.id);
+                    const newIndex = data.projects.findIndex((item) => item._id === over?.id);
+                    const newOrder = arrayMove(data.projects, oldIndex, newIndex);
+                    handleReorder("projects", newOrder);
+                  }
+                }}
+              >
+                <SortableContext items={data.projects.map((p) => p._id)} strategy={verticalListSortingStrategy}>
+                  <ul className="space-y-2">
+                    {data.projects.map((item) => (
+                      <SortableProjectItem
+                        key={item._id}
+                        item={item}
+                        onEdit={(item) => handleEdit(active, item)}
+                        onDelete={(id) => handleDelete(active, id)}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
+            ) : ["skills", "experience", "achievements"].includes(active) &&
+              data[active]?.length ? (
                 <ul className="space-y-2">
                   {data[active].map((item) => (
                     <li
@@ -593,7 +726,7 @@ export default function Admin() {
                 </ul>
               ) : (
                 <p className="text-sm text-primary/40 text-center py-4">No entries yet</p>
-              ))}
+              )}
 
             {active === "about" && (
               <pre className="text-xs bg-primary/5 border border-primary/10 rounded-xl p-4 overflow-auto text-primary">

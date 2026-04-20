@@ -69,7 +69,7 @@ export default function ProjectCard() {
 
                 {/* Button */}
                 <div className="mt-auto flex items-center justify-end flex-shrink-0">
-                  <Link 
+                  <Link
                     to={`/locked-project?id=${project._id || index}`}
                     className="flex items-center gap-2 text-xs px-3.5 py-2 rounded-lg border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 font-medium"
                   >

@@ -38,7 +38,7 @@ const CertCard = memo(({ cert, index }) => {
         <div className="absolute inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl blur opacity-10 group-hover:opacity-30 transition-opacity duration-500" />
       )}
       
-      <div className="relative h-full flex flex-col bg-white/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 lg:p-8 border border-slate-100 hover:border-amber-400/50 hover:-translate-y-2 transition-all duration-300">
+      <div className="relative h-full flex flex-col bg-white/90 backdrop-blur-sm rounded-2xl p-5  border border-slate-100 hover:border-amber-400/50 hover:-translate-y-2 transition-all duration-300">
         
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
@@ -70,16 +70,8 @@ const CertCard = memo(({ cert, index }) => {
 
         {/* Footer */}
         <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-          <div className="flex -space-x-1.5">
-            {cert.skills?.slice(0, 4).map((skill, i) => (
-              <div 
-                key={i}
-                className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-slate-600 shadow-sm"
-                title={skill}
-              >
-                {skill.substring(0, 2).toUpperCase()}
-              </div>
-            ))}
+          <div className="text-[10px] font-medium text-slate-500">
+            {cert.date ? new Date(cert.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Achievement Date'}
           </div>
 
           <a 
