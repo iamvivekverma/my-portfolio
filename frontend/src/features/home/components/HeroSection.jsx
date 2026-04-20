@@ -31,7 +31,7 @@ export default function HeroSection() {
         </div>
 
         <Motion.div
-          className="fixed bottom-2 px-8 max-[500px]:px-5 z-20 text-primary flex justify-between w-full"
+          className="fixed bottom-4 px-8 max-[500px]:px-5 z-20 text-primary flex justify-between w-full"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
