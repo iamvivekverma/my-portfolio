@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: portfolio-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: DB_NAME
+        value: vivek_data
+      - key: FRONTEND_URLS
+        sync: false
+      - key: ADMIN_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: CHATBOT_RATE_WINDOW_MS
+        value: 60000
+      - key: CHATBOT_MAX_REQUESTS_PER_WINDOW
+        value: 8
+      - key: CHATBOT_DAILY_LIMIT
+        value: 80
