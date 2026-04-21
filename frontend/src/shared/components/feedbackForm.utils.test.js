@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {
   buildFeedbackPayload,
   getFeedbackClientId,
+  sanitizeFeedbackMessageInput,
+  sanitizeFeedbackNameInput,
   validateFeedback,
 } from './feedbackForm.utils.js';
 
@@ -22,6 +24,7 @@ test('buildFeedbackPayload returns the expected submit payload', () => {
     name: 'Vivek',
     content: 'This portfolio is easy to understand and feels professional.',
     honeypot: '',
+    captchaToken: 'captcha-token',
     metadata: {
       clientId: 'client-123',
       language: 'en-IN',
@@ -32,6 +35,7 @@ test('buildFeedbackPayload returns the expected submit payload', () => {
     name: 'Vivek',
     content: 'This portfolio is easy to understand and feels professional.',
     honeypot: '',
+    captchaToken: 'captcha-token',
     metadata: {
       clientId: 'client-123',
       language: 'en-IN',
@@ -57,4 +61,12 @@ test('getFeedbackClientId reuses an existing id from storage', () => {
   });
 
   assert.equal(clientId, 'saved-client-id');
+});
+
+test('input sanitizers strip HTML and unsafe characters', () => {
+  assert.equal(sanitizeFeedbackNameInput('<b>Vivek123</b>'), 'Vivek');
+  assert.equal(
+    sanitizeFeedbackMessageInput('Hello <script>alert(1)</script><b>world</b> from feedback'),
+    'Hello world from feedback',
+  );
 });

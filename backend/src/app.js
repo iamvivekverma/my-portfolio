@@ -92,6 +92,13 @@ app.use((error, req, res, next) => {
     });
   }
 
+  if (error?.name === 'ValidationError' || error?.name === 'StrictModeError') {
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Invalid request payload.',
+    });
+  }
+
   if (!isProduction()) {
     console.error(error);
   }
@@ -99,6 +106,7 @@ app.use((error, req, res, next) => {
   return res.status(error?.status || 500).json({
     success: false,
     message: isProduction() ? 'Something went wrong.' : error?.message || 'Something went wrong.',
+    ...(isProduction() || !error?.details ? {} : { details: error.details }),
   });
 });
 

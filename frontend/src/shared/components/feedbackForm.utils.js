@@ -1,4 +1,19 @@
 export const FEEDBACK_CLIENT_ID_KEY = 'portfolio_feedback_client_id';
+const RECAPTCHA_SCRIPT_ID = 'feedback-recaptcha-script';
+const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
+const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
+const IS_DEV = Boolean(import.meta?.env?.DEV);
+
+function stripHtml(value) {
+  return typeof value === 'string'
+    ? value
+        .normalize('NFKC')
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
+        .replace(/<\/?[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : '';
+}
 
 export function getFeedbackClientId(storage = window.localStorage, cryptoRef = window.crypto) {
   const existingId = storage.getItem(FEEDBACK_CLIENT_ID_KEY);
@@ -14,9 +29,19 @@ export function getFeedbackClientId(storage = window.localStorage, cryptoRef = w
   return nextId;
 }
 
+export function sanitizeFeedbackNameInput(name) {
+  return stripHtml(name)
+    .replace(/[^\p{L}\p{M}\s.'-]/gu, '')
+    .slice(0, 80);
+}
+
+export function sanitizeFeedbackMessageInput(content) {
+  return stripHtml(content).slice(0, 1000);
+}
+
 export function validateFeedback(name, content) {
-  const trimmedName = name.trim();
-  const trimmedContent = content.trim();
+  const trimmedName = sanitizeFeedbackNameInput(name).trim();
+  const trimmedContent = sanitizeFeedbackMessageInput(content).trim();
   const normalized = trimmedContent.toLowerCase().replace(/\s+/g, ' ');
   const wordCount = trimmedContent.split(/\s+/).filter(Boolean).length;
   const letterChars = (trimmedContent.match(/\p{L}/gu) || []).length;
@@ -52,11 +77,67 @@ export function validateFeedback(name, content) {
   return '';
 }
 
-export function buildFeedbackPayload({ name, content, honeypot, metadata }) {
+export function buildFeedbackPayload({ name, content, honeypot, metadata, captchaToken }) {
   return {
-    name,
-    content,
+    name: sanitizeFeedbackNameInput(name),
+    content: sanitizeFeedbackMessageInput(content),
     honeypot,
+    captchaToken,
     metadata,
   };
+}
+
+export function loadRecaptchaScript(siteKey, documentRef = document) {
+  if (IS_DEV && !siteKey) {
+    return Promise.resolve(null);
+  }
+
+  if (!siteKey) {
+    return Promise.reject(new Error('Feedback CAPTCHA is not configured.'));
+  }
+
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('CAPTCHA is only available in the browser.'));
+  }
+
+  if (window.grecaptcha?.ready) {
+    return Promise.resolve(window.grecaptcha);
+  }
+
+  const existingScript = documentRef.getElementById(RECAPTCHA_SCRIPT_ID);
+
+  if (existingScript) {
+    return new Promise((resolve, reject) => {
+      existingScript.addEventListener('load', () => resolve(window.grecaptcha), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Unable to load CAPTCHA.')), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = documentRef.createElement('script');
+    script.id = RECAPTCHA_SCRIPT_ID;
+    script.src = `${RECAPTCHA_SRC}${encodeURIComponent(siteKey)}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve(window.grecaptcha);
+    script.onerror = () => reject(new Error('Unable to load CAPTCHA.'));
+    documentRef.head.appendChild(script);
+  });
+}
+
+export async function getFeedbackCaptchaToken(siteKey) {
+  if (IS_DEV && !siteKey) {
+    return DEV_CAPTCHA_TOKEN;
+  }
+
+  const grecaptcha = await loadRecaptchaScript(siteKey);
+
+  return new Promise((resolve, reject) => {
+    grecaptcha.ready(() => {
+      grecaptcha
+        .execute(siteKey, { action: 'feedback_submit' })
+        .then(resolve)
+        .catch(() => reject(new Error('Unable to verify CAPTCHA. Please try again.')));
+    });
+  });
 }

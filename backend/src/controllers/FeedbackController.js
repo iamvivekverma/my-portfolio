@@ -1,14 +1,10 @@
 const { FeedbackModel } = require('../models/FeedbackModel');
 const {
-  RATE_LIMIT_WINDOW_MS,
-  MAX_REQUESTS_PER_WINDOW,
   DUPLICATE_WINDOW_MS,
-  sanitizeText,
   getClientIp,
   createFingerprint,
   normalizeContentForCompare,
   formatSenderName,
-  getClientMetadata,
   analyzeSubmission,
   getModerationMessage,
 } = require('../lib/feedbackSecurity');
@@ -56,54 +52,15 @@ async function deleteData(req, res) {
 
 const storeData = async (req, res) => {
   try {
-    const senderName = sanitizeText(req.body?.name);
-    const content = sanitizeText(req.body?.content);
-    const honeypot = sanitizeText(req.body?.honeypot);
+    const payload = req.validatedFeedback || {};
+    const senderName = payload.name || '';
+    const content = payload.content || '';
+    const honeypot = payload.honeypot || '';
+    const metadata = payload.metadata || {};
     const ip = getClientIp(req);
-    const userAgent = sanitizeText(req.headers['user-agent']).slice(0, 500);
-    const metadata = getClientMetadata(req.body);
+    const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'].slice(0, 500) : '';
     const fingerprintHash = createFingerprint({ ip, userAgent, clientId: metadata.clientId });
     const now = Date.now();
-
-    if (!senderName || senderName.length < 2 || senderName.length > 80) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter your full name.',
-      });
-    }
-
-    if (!content) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter your feedback message.',
-      });
-    }
-
-    if (content.length < 15) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please write a more detailed message.',
-      });
-    }
-
-    if (content.length > 1000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Your message is too long. Please keep it under 1000 characters.',
-      });
-    }
-
-    const recentFeedbackCount = await FeedbackModel.countDocuments({
-      fingerprintHash,
-      createdAt: { $gte: new Date(now - RATE_LIMIT_WINDOW_MS) },
-    });
-
-    if (recentFeedbackCount >= MAX_REQUESTS_PER_WINDOW) {
-      return res.status(429).json({
-        success: false,
-        message: 'Too many feedback attempts. Please try again later.',
-      });
-    }
 
     const moderation = analyzeSubmission({
       content,
@@ -138,10 +95,16 @@ const storeData = async (req, res) => {
       contentNormalized,
       ip,
       userAgent,
-      origin: sanitizeText(req.headers.origin).slice(0, 300),
-      referrer: sanitizeText(req.headers.referer).slice(0, 500) || metadata.referrer,
+      origin: typeof req.headers.origin === 'string' ? req.headers.origin.slice(0, 300) : '',
+      referrer:
+        (typeof req.headers.referer === 'string' ? req.headers.referer.slice(0, 500) : '') || metadata.referrer,
       fingerprintHash,
       clientMeta: metadata,
+      captcha: {
+        score: req.recaptcha?.score,
+        action: req.recaptcha?.action,
+        bypassed: req.recaptcha?.bypassed === true,
+      },
     });
 
     await feedback.save();

@@ -1,13 +1,24 @@
 import { useEffect, useState } from 'react';
 import { portfolioApi } from '../../services/api';
 import { toast } from 'react-toastify';
-import { buildFeedbackPayload, getFeedbackClientId, validateFeedback } from './feedbackForm.utils';
+import {
+  buildFeedbackPayload,
+  getFeedbackCaptchaToken,
+  getFeedbackClientId,
+  loadRecaptchaScript,
+  sanitizeFeedbackMessageInput,
+  sanitizeFeedbackNameInput,
+  validateFeedback,
+} from './feedbackForm.utils';
 
-function createFeedbackRequest({ name, content, honeypot }) {
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+
+function createFeedbackRequest({ name, content, honeypot, captchaToken }) {
   return buildFeedbackPayload({
     name,
     content,
     honeypot,
+    captchaToken,
     metadata: {
       pageUrl: window.location.href,
       referrer: document.referrer,
@@ -32,6 +43,10 @@ export default function FeedbackForm({ isOpen, onClose }) {
     if (isOpen) {
       setSubmitted(false);
       setErrorMessage('');
+
+      if (RECAPTCHA_SITE_KEY) {
+        loadRecaptchaScript(RECAPTCHA_SITE_KEY).catch(() => {});
+      }
     }
   }, [isOpen]);
 
@@ -54,11 +69,14 @@ export default function FeedbackForm({ isOpen, onClose }) {
     setErrorMessage('');
 
     try {
+      const captchaToken = await getFeedbackCaptchaToken(RECAPTCHA_SITE_KEY);
+
       await portfolioApi.submitFeedback(
         createFeedbackRequest({
           name,
           content,
           honeypot,
+          captchaToken,
         })
       );
 
@@ -133,7 +151,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 type="text"
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value);
+                  setName(sanitizeFeedbackNameInput(e.target.value));
                   if (errorMessage) {
                     setErrorMessage('');
                   }
@@ -141,6 +159,8 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 placeholder="Enter your name"
                 className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 maxLength={80}
+                autoComplete="name"
+                inputMode="text"
               />
             </div>
 
@@ -151,7 +171,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
               <textarea
                 value={content}
                 onChange={(e) => {
-                  setContent(e.target.value);
+                  setContent(sanitizeFeedbackMessageInput(e.target.value));
                   if (errorMessage) {
                     setErrorMessage('');
                   }
@@ -160,9 +180,15 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 placeholder="Share your thoughts, suggestions, or report issues..."
                 className="w-full resize-none rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 maxLength={1000}
+                autoComplete="off"
               />
               <p className="mt-2 text-xs text-primary/50">
                 Write a clear message. Random text like "hi", "test", or meaningless words will not be accepted.
+              </p>
+              <p className="mt-1 text-xs text-primary/40">
+                {RECAPTCHA_SITE_KEY
+                  ? 'This form is protected by Google reCAPTCHA before it reaches the API.'
+                  : 'Add your Google reCAPTCHA site key in the frontend environment before deploying this form.'}
               </p>
             </div>
 

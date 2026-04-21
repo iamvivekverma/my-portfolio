@@ -2,59 +2,72 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const feedbackSchema = new Schema({
-  senderName: {
-    type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 80,
-    trim: true,
+const feedbackSchema = new Schema(
+  {
+    senderName: {
+      type: String,
+      required: true,
+      minlength: 2,
+      maxlength: 80,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      minlength: 15,
+      maxlength: 1000,
+      trim: true,
+    },
+    contentNormalized: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+    ip: {
+      type: String,
+      required: true,
+    },
+    userAgent: {
+      type: String,
+    },
+    origin: {
+      type: String,
+    },
+    referrer: {
+      type: String,
+    },
+    fingerprintHash: {
+      type: String,
+      index: true,
+    },
+    clientMeta: {
+      pageUrl: String,
+      referrer: String,
+      timezone: String,
+      language: String,
+      platform: String,
+      screen: String,
+      clientId: String,
+    },
+    captcha: {
+      score: Number,
+      action: String,
+      bypassed: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      index: true,
+    },
   },
-  content: {
-    type: String,
-    required: true,
-    minlength: 15,
-    maxlength: 1000,
-    trim: true,
+  {
+    strict: 'throw',
   },
-  contentNormalized: {
-    type: String,
-    required: true,
-    trim: true,
-    index: true,
-  },
-  ip: {
-    type: String,
-    required: true,
-  },
-  userAgent: {
-    type: String,
-  },
-  origin: {
-    type: String,
-  },
-  referrer: {
-    type: String,
-  },
-  fingerprintHash: {
-    type: String,
-    index: true,
-  },
-  clientMeta: {
-    pageUrl: String,
-    referrer: String,
-    timezone: String,
-    language: String,
-    platform: String,
-    screen: String,
-    clientId: String,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-});
+);
 
 feedbackSchema.index({ senderName: 1, createdAt: -1 });
 

@@ -1,10 +1,10 @@
 const http = require('http');
 const { loadEnv } = require('./config/env');
-const { connectDB } = require('./config/db');
-const { app } = require('./app');
 
 loadEnv();
 
+const { connectDB } = require('./config/db');
+const { app } = require('./app');
 const PORT = process.env.PORT || 3000;
 
 async function start() {

@@ -22,6 +22,12 @@ function createResponse() {
 function createRequest(body = {}) {
   return {
     body,
+    validatedFeedback: body,
+    recaptcha: {
+      score: 0.9,
+      action: 'feedback_submit',
+      bypassed: true,
+    },
     headers: {
       'user-agent': 'test-agent',
       origin: 'http://localhost:5173',
@@ -31,18 +37,15 @@ function createRequest(body = {}) {
   };
 }
 
-const originalCountDocuments = FeedbackModel.countDocuments;
 const originalFindOne = FeedbackModel.findOne;
 const originalSave = FeedbackModel.prototype.save;
 
 test.afterEach(() => {
-  FeedbackModel.countDocuments = originalCountDocuments;
   FeedbackModel.findOne = originalFindOne;
   FeedbackModel.prototype.save = originalSave;
 });
 
 test('storeData accepts Hindi feedback when checks pass', async () => {
-  FeedbackModel.countDocuments = async () => 0;
   FeedbackModel.findOne = () => ({
     lean: async () => null,
   });
@@ -65,26 +68,7 @@ test('storeData accepts Hindi feedback when checks pass', async () => {
   assert.equal(res.body.success, true);
 });
 
-test('storeData blocks repeated recent submissions by fingerprint', async () => {
-  FeedbackModel.countDocuments = async () => 3;
-
-  const req = createRequest({
-    name: 'Vivek',
-    content: 'This portfolio feels polished and easy to understand for visitors.',
-    metadata: {
-      clientId: 'client-2',
-    },
-  });
-  const res = createResponse();
-
-  await storeData(req, res);
-
-  assert.equal(res.statusCode, 429);
-  assert.equal(res.body.success, false);
-});
-
 test('storeData blocks duplicate feedback content from the same fingerprint', async () => {
-  FeedbackModel.countDocuments = async () => 0;
   FeedbackModel.findOne = () => ({
     lean: async () => ({ _id: 'duplicate-feedback' }),
   });
@@ -101,5 +85,25 @@ test('storeData blocks duplicate feedback content from the same fingerprint', as
   await storeData(req, res);
 
   assert.equal(res.statusCode, 409);
+  assert.equal(res.body.success, false);
+});
+
+test('storeData rejects spammy feedback after sanitization and moderation', async () => {
+  FeedbackModel.findOne = () => ({
+    lean: async () => null,
+  });
+
+  const req = createRequest({
+    name: 'Vivek',
+    content: 'Buy now at https://spam.example and win free money today!',
+    metadata: {
+      clientId: 'client-4',
+    },
+  });
+  const res = createResponse();
+
+  await storeData(req, res);
+
+  assert.equal(res.statusCode, 422);
   assert.equal(res.body.success, false);
 });
