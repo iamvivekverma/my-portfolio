@@ -1,34 +1,66 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { portfolioApi } from '../../services/api';
 import { toast } from 'react-toastify';
 
 export default function FeedbackForm({ isOpen, onClose }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormStartedAt(Date.now());
+      setSubmitted(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     // Honeypot check - if filled, it's a bot
     if (honeypot) {
       console.log('Bot detected via honeypot');
       return;
     }
-    if (!content.trim()) return;
+
+    if (!name.trim() || !email.trim() || !content.trim()) {
+      return;
+    }
 
     setLoading(true);
     try {
-      await portfolioApi.submitFeedback({ content });
+      await portfolioApi.submitFeedback({
+        name,
+        email,
+        content,
+        honeypot,
+        formStartedAt,
+        submittedAt: Date.now(),
+        metadata: {
+          pageUrl: window.location.href,
+          referrer: document.referrer,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+          language: navigator.language || '',
+          platform: navigator.userAgentData?.platform || navigator.platform || '',
+          screen: `${window.screen.width}x${window.screen.height}`,
+        },
+      });
+
       toast.success('Thank you for your feedback!');
+      setName('');
+      setEmail('');
       setContent('');
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
         onClose();
       }, 2000);
-    } catch {
-      toast.error('Failed to submit feedback. Please try again.');
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit feedback. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +109,37 @@ export default function FeedbackForm({ isOpen, onClose }) {
 
           <div>
             <label className="block text-sm font-semibold text-primary mb-2">
+              Your Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary"
+              required
+              minLength={2}
+              maxLength={80}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primary mb-2">
+              Your Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary"
+              required
+              maxLength={120}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primary mb-2">
               Your Feedback
             </label>
             <textarea
@@ -86,7 +149,12 @@ export default function FeedbackForm({ isOpen, onClose }) {
               placeholder="Share your thoughts, suggestions, or report issues..."
               className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary resize-none"
               required
+              minLength={15}
+              maxLength={1000}
             />
+            <p className="mt-2 text-xs text-primary/50">
+              Please keep the message clear and relevant. Spam or meaningless text will be rejected.
+            </p>
           </div>
 
           <div className="flex gap-3">
@@ -99,7 +167,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
             </button>
             <button
               type="submit"
-              disabled={loading || !content.trim()}
+              disabled={loading || !name.trim() || !email.trim() || !content.trim()}
               className="flex-1 bg-[var(--color-primary)] text-white px-4 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Sending...' : 'Submit'}

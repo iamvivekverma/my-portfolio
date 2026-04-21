@@ -78,6 +78,7 @@ const sections = [
   { key: "skills", label: "Skills" },
   { key: "experience", label: "Experience" },
   { key: "achievements", label: "Achievements" },
+  { key: "feedback", label: "Feedback" },
   { key: "about", label: "About" },
 ];
 
@@ -191,6 +192,105 @@ function createAchievementFormState(initial) {
   };
 }
 
+function formatFeedbackDate(value) {
+  if (!value) {
+    return "Unknown time";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function FeedbackOverview({ items, onRefresh, loading }) {
+  const total = items?.length || 0;
+  const today = new Date();
+  const todayKey = today.toDateString();
+  const todayCount = (items || []).filter((item) => new Date(item.createdAt).toDateString() === todayKey).length;
+  const withEmailCount = (items || []).filter((item) => item.senderEmail).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid sm:grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
+          <p className="text-sm text-primary/60">Total feedback</p>
+          <p className="text-3xl font-bold text-primary">{total}</p>
+        </div>
+        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
+          <p className="text-sm text-primary/60">Received today</p>
+          <p className="text-3xl font-bold text-primary">{todayCount}</p>
+        </div>
+        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
+          <p className="text-sm text-primary/60">Identifiable senders</p>
+          <p className="text-3xl font-bold text-primary">{withEmailCount}</p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-primary/10 bg-white p-5">
+        <h3 className="text-lg font-semibold text-primary mb-2">Protection summary</h3>
+        <p className="text-sm text-primary/70 leading-6">
+          Feedback now captures sender name, email, IP, browser metadata, page source, and submission time.
+          Duplicate, too-fast, random, link-heavy, and spammy submissions are rejected automatically.
+        </p>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="mt-4 inline-flex items-center rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
+        >
+          {loading ? "Refreshing..." : "Refresh Inbox"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FeedbackInbox({ items, onDelete }) {
+  if (!items?.length) {
+    return <p className="text-sm text-primary/40 text-center py-4">No feedback yet</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => (
+        <article key={item._id} className="rounded-2xl border border-primary/10 bg-primary/5 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h4 className="text-base font-semibold text-primary">{item.senderName || "Unknown sender"}</h4>
+              <p className="text-sm text-primary/70">{item.senderEmail || "No email"}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onDelete(item._id)}
+              className="rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-200"
+            >
+              Delete
+            </button>
+          </div>
+
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-primary/85">{item.content}</p>
+
+          <div className="mt-4 grid gap-2 text-xs text-primary/60">
+            <p><span className="font-semibold text-primary/70">Received:</span> {formatFeedbackDate(item.createdAt)}</p>
+            <p><span className="font-semibold text-primary/70">IP:</span> {item.ip || "Unknown"}</p>
+            <p><span className="font-semibold text-primary/70">Platform:</span> {item.clientMeta?.platform || item.userAgent || "Unknown"}</p>
+            <p><span className="font-semibold text-primary/70">Timezone:</span> {item.clientMeta?.timezone || "Unknown"}</p>
+            <p><span className="font-semibold text-primary/70">Language:</span> {item.clientMeta?.language || "Unknown"}</p>
+            <p><span className="font-semibold text-primary/70">Page:</span> {item.clientMeta?.pageUrl || item.referrer || "Unknown"}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export default function Admin() {
   const [adminToken, setAdminToken] = useState(() => getStoredAdminToken());
   const [loginPassword, setLoginPassword] = useState("");
@@ -205,6 +305,7 @@ export default function Admin() {
     skills: [],
     experience: [],
     achievements: [],
+    feedback: [],
     about: null,
   });
 
@@ -220,6 +321,7 @@ export default function Admin() {
       skills: [],
       experience: [],
       achievements: [],
+      feedback: [],
       about: null,
     });
     setLoginError(message);
@@ -644,32 +746,47 @@ export default function Admin() {
             <h2 className="text-2xl font-bold text-primary mb-6 capitalize" style={{ fontFamily: "var(--font-display)" }}>
               {active}
             </h2>
-            <Forms
-              key={formKey}
-              onCreate={{
-                projects: handleProjectCreate,
-                skills: handleSkillCreate,
-                experience: handleExperienceCreate,
-                achievements: handleAchievementCreate,
-                about: handleAboutSave,
-              }[active]}
-              onUpdate={{
-                projects: (id, formData) => handleUpdate("projects", id, formData),
-                skills: (id, formData) => handleUpdate("skills", id, formData),
-                experience: (id, formData) => handleUpdate("experience", id, formData),
-                achievements: (id, formData) => handleUpdate("achievements", id, formData),
-              }[active]}
-              initial={formInitial}
-              isEditing={active !== "about" && editingItem?.resource === active}
-              onCancelEdit={() => setEditingItem(null)}
-              loading={loading}
-            />
+            {active === "feedback" ? (
+              <FeedbackOverview
+                items={data.feedback}
+                onRefresh={() => fetchData("feedback")}
+                loading={loading}
+              />
+            ) : (
+              <Forms
+                key={formKey}
+                onCreate={{
+                  projects: handleProjectCreate,
+                  skills: handleSkillCreate,
+                  experience: handleExperienceCreate,
+                  achievements: handleAchievementCreate,
+                  about: handleAboutSave,
+                }[active]}
+                onUpdate={{
+                  projects: (id, formData) => handleUpdate("projects", id, formData),
+                  skills: (id, formData) => handleUpdate("skills", id, formData),
+                  experience: (id, formData) => handleUpdate("experience", id, formData),
+                  achievements: (id, formData) => handleUpdate("achievements", id, formData),
+                }[active]}
+                initial={formInitial}
+                isEditing={active !== "about" && editingItem?.resource === active}
+                onCancelEdit={() => setEditingItem(null)}
+                loading={loading}
+              />
+            )}
           </div>
 
           <div className="bg-white border border-primary/10 rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-primary mb-4">Existing Items</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">
+              {active === "feedback" ? "Inbox" : "Existing Items"}
+            </h3>
 
-            {active === "projects" && data.projects?.length ? (
+            {active === "feedback" ? (
+              <FeedbackInbox
+                items={data.feedback}
+                onDelete={(id) => handleDelete("feedback", id)}
+              />
+            ) : active === "projects" && data.projects?.length ? (
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
