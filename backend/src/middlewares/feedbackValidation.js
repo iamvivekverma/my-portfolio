@@ -19,6 +19,16 @@ const feedbackValidationRules = [
     .bail()
     .custom(hasSafeNameCharacters)
     .withMessage('Name contains invalid characters.'),
+  body('email')
+    .exists({ values: 'falsy' })
+    .withMessage('Please enter your email address.')
+    .bail()
+    .custom(isStringField)
+    .withMessage('Email must be plain text.')
+    .bail()
+    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 160 }).toLowerCase())
+    .isEmail()
+    .withMessage('Please enter a valid email address.'),
   body('content')
     .exists({ values: 'falsy' })
     .withMessage('Please enter your feedback message.')
@@ -27,7 +37,7 @@ const feedbackValidationRules = [
     .withMessage('Message must be plain text.')
     .bail()
     .customSanitizer((value) => sanitizePlainText(value, { maxLength: 1000 }))
-    .isLength({ min: 15, max: 1000 })
+    .isLength({ min: 5, max: 1000 })
     .withMessage('Please write a more detailed message.'),
   body('captchaToken')
     .exists({ values: 'falsy' })

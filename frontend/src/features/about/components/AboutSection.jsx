@@ -136,8 +136,8 @@ export default function AboutSection() {
               })}
               <button
                 onClick={() => setIsFeedbackOpen(true)}
-                title="Send Feedback"
-                className="w-9 h-9 rounded-full border border-primary/25 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group"
+                title="Share Feedback"
+                className="w-9 h-9 rounded-full border border-primary/25 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group cursor-pointer"
               >
                 <FaComment className="w-4 h-4 text-primary group-hover:text-white transition-colors" />
               </button>

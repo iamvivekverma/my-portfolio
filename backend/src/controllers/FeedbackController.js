@@ -46,12 +46,14 @@ const storeData = async (req, res) => {
   try {
     const payload = req.validatedFeedback || {};
     const senderName = payload.name || '';
+    const senderEmail = payload.email || '';
     const content = payload.content || '';
     const ip = getClientIp(req);
     const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'].slice(0, 500) : '';
 
     const feedback = new FeedbackModel({
       senderName,
+      senderEmail,
       content,
       ip,
       userAgent,

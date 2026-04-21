@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { FaTimes, FaCheckCircle } from 'react-icons/fa';
 import { portfolioApi } from '../../services/api';
 import { toast } from 'react-toastify';
 import {
@@ -7,6 +8,7 @@ import {
   getFeedbackCaptchaToken,
   loadRecaptchaScript,
   setRecaptchaBadgeVisibility,
+  sanitizeFeedbackEmailInput,
   sanitizeFeedbackMessageInput,
   sanitizeFeedbackNameInput,
   validateFeedback,
@@ -14,9 +16,10 @@ import {
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
-function createFeedbackRequest({ name, content, captchaToken }) {
+function createFeedbackRequest({ name, email, content, captchaToken }) {
   return buildFeedbackPayload({
     name,
+    email,
     content,
     captchaToken,
   });
@@ -24,10 +27,28 @@ function createFeedbackRequest({ name, content, captchaToken }) {
 
 export default function FeedbackForm({ isOpen, onClose }) {
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const closeTimerRef = useRef(null);
+
+  function clearCloseTimer() {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }
+
+  function handleClose() {
+    if (loading) {
+      return;
+    }
+
+    clearCloseTimer();
+    onClose();
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -44,14 +65,38 @@ export default function FeedbackForm({ isOpen, onClose }) {
     }
 
     return () => {
+      clearCloseTimer();
       setRecaptchaBadgeVisibility(false);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    const previousTouchAction = body.style.touchAction;
+
+    if (isOpen) {
+      body.style.overflow = 'hidden';
+      body.style.touchAction = 'none';
+    } else {
+      body.style.overflow = previousOverflow;
+      body.style.touchAction = previousTouchAction;
+    }
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.touchAction = previousTouchAction;
     };
   }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validationMessage = validateFeedback(name, content);
+    const validationMessage = validateFeedback(name, email, content);
 
     if (validationMessage) {
       setErrorMessage(validationMessage);
@@ -67,6 +112,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
       await portfolioApi.submitFeedback(
         createFeedbackRequest({
           name,
+          email,
           content,
           captchaToken,
         })
@@ -74,9 +120,11 @@ export default function FeedbackForm({ isOpen, onClose }) {
 
       toast.success('Thank you for your feedback!');
       setName('');
+      setEmail('');
       setContent('');
       setSubmitted(true);
-      setTimeout(() => {
+      clearCloseTimer();
+      closeTimerRef.current = window.setTimeout(() => {
         setSubmitted(false);
         onClose();
       }, 2000);
@@ -92,23 +140,29 @@ export default function FeedbackForm({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={handleClose}>
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold text-primary" style={{ fontFamily: 'var(--font-display)' }}>
-            Send Feedback
+            Share Your Feedback
           </h2>
           <button
-            onClick={onClose}
-            className="text-2xl leading-none text-primary/60 hover:text-primary"
+            type="button"
+            onClick={handleClose}
+            disabled={loading}
+            className="flex h-8 w-8 items-center justify-center border cursor-pointer rounded-lg text-primary/60 hover:bg-primary/5 hover:text-primary transition-colors"
           >
-            &times;
+            <FaTimes className="text-lg" />
           </button>
         </div>
 
         {submitted ? (
-          <div className="py-8 text-center">
-            <div className="mb-4 text-6xl">🎉</div>
+          <div className="py-10 text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <FaCheckCircle className="text-3xl text-green-600" />
+              </div>
+            </div>
             <h3 className="mb-2 text-xl font-bold text-primary" style={{ fontFamily: 'var(--font-display)' }}>
               Thank you!
             </h3>
@@ -125,7 +179,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
             )}
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-primary">
+              <label className="mb-2 block text-sm font-medium text-primary text-left">
                 Your Name
               </label>
               <input
@@ -138,7 +192,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
                   }
                 }}
                 placeholder="Enter your name"
-                className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 maxLength={80}
                 autoComplete="name"
                 inputMode="text"
@@ -146,8 +200,29 @@ export default function FeedbackForm({ isOpen, onClose }) {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-primary">
-                Your Feedback
+              <label className="mb-2 block text-sm font-medium text-primary text-left">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(sanitizeFeedbackEmailInput(e.target.value));
+                  if (errorMessage) {
+                    setErrorMessage('');
+                  }
+                }}
+                placeholder="Enter your email address"
+                className="w-full rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                maxLength={160}
+                autoComplete="email"
+                inputMode="email"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-primary text-left">
+                Your Message
               </label>
               <textarea
                 value={content}
@@ -158,50 +233,52 @@ export default function FeedbackForm({ isOpen, onClose }) {
                   }
                 }}
                 rows={4}
-                placeholder="Share your thoughts, suggestions, or report issues..."
-                className="w-full resize-none rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Write your message..."
+                className="w-full resize-none rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 maxLength={1000}
                 autoComplete="off"
               />
-              <p className="mt-2 text-xs text-primary/40">
-                This site is protected by reCAPTCHA and the Google{' '}
-                <a
-                  href="https://policies.google.com/privacy"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Privacy Policy
-                </a>{' '}
-                and{' '}
-                <a
-                  href="https://policies.google.com/terms"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Terms of Service
-                </a>{' '}
-                apply.
-              </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
-                onClick={onClose}
-                className="flex-1 rounded-xl border border-primary/20 px-4 py-3 font-medium text-primary transition-colors hover:bg-primary/5"
+                onClick={handleClose}
+                disabled={loading}
+                className="flex-1 rounded-xl border border-primary/20 px-4 py-3 font-medium text-primary hover:bg-primary/5 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 rounded-xl bg-[var(--color-primary)] px-4 py-3 font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 rounded-xl bg-primary px-4 py-3 font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
               >
                 {loading ? 'Sending...' : 'Submit'}
               </button>
             </div>
+
+            <p className="pt-2 text-center text-[11px] leading-5 text-primary/35">
+              Protected by reCAPTCHA. Google{' '}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2 hover:text-primary/50"
+              >
+                Privacy Policy
+              </a>{' '}
+              and{' '}
+              <a
+                href="https://policies.google.com/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2 hover:text-primary/50"
+              >
+                Terms of Service
+              </a>{' '}
+              apply.
+            </p>
           </form>
         )}
       </div>

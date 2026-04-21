@@ -8,7 +8,7 @@ import { primeProjectsCache } from "../../services/projectsCache";
 export default function RootLayout() {
   const location = useLocation();
   const hideFooterRoutes = ["/", "/locked-project"];
-  const showFooter = !hideFooterRoutes.includes(location.pathname);
+  const showFooter = !hideFooterRoutes.includes(location.pathname) && !location.pathname.startsWith("/project/");
 
   useEffect(() => {
     if (typeof window === "undefined") {

@@ -62,8 +62,8 @@ export default function Footer() {
           })}
           <button
             onClick={() => setIsFeedbackOpen(true)}
-            title="Send Feedback"
-            className="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group"
+            title="Share Feedback"
+            className="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group cursor-pointer"
           >
             <FaComment className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
           </button>

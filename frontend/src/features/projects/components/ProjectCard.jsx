@@ -5,7 +5,7 @@ import { buildApiUrl } from '../../../services/api';
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse bg-primary/5 border border-primary/10 rounded-2xl p-5 sm:min-w-[280px] sm:max-w-[320px] lg:min-w-[300px] lg:max-w-[350px] flex flex-col gap-3 flex-shrink-0">
+    <div className="w-full sm:w-[320px] lg:w-[350px] animate-pulse bg-primary/5 border border-primary/10 rounded-2xl p-5 flex flex-col gap-3 flex-shrink-0">
       <div className="h-[160px] bg-primary/10 rounded-xl flex-shrink-0" />
       <div className="h-4 w-3/4 bg-primary/10 rounded" />
       <div className="h-3 w-full bg-primary/5 rounded" />
@@ -36,13 +36,13 @@ export default function ProjectCard() {
 
   return (
     <section className="w-full">
-      <div className="flex flex-col sm:flex-row gap-5 overflow-x-auto px-4 pb-2 scrollbar-hide">
+      <div className="flex flex-col sm:flex-row gap-5 overflow-x-auto px-4 pb-2 pt-1 scrollbar-hide">
         {loading
           ? [1,2,3].map(i => <SkeletonCard key={i} />)
           : projects.map((project) => (
-              <div
+            <div
                 key={project._id}
-                className="bg-[var(--color-accent)] rounded-2xl p-4 sm:max-w-[320px] flex flex-col gap-4 flex-shrink-0
+                className="w-full sm:w-[320px] lg:w-[350px] bg-[var(--color-accent)] rounded-2xl p-4 flex flex-col gap-4 flex-shrink-0
                            transition-transform duration-300 hover:-translate-y-1"
               >
                 {/* Image placeholder */}
@@ -72,9 +72,10 @@ export default function ProjectCard() {
                 <div className="mt-auto flex items-center justify-end flex-shrink-0">
                   <Link
                     to={`/project/${project._id}`}
+                    state={project.isLocked ? { isLocked: true } : null}
                     className="flex items-center gap-2 text-xs px-3.5 py-2 rounded-lg border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 font-medium"
                   >
-                    {project.isLocked ? 'unlock project >>' : 'see more >>'}
+                    {'see more >>'}
                   </Link>
                 </div>
               </div>

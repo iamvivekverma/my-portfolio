@@ -301,7 +301,7 @@ function FeedbackOverview({ items, onRefresh, loading }) {
       <div className="rounded-2xl border border-primary/10 bg-white p-5">
         <h3 className="text-lg font-semibold text-primary mb-2">Protection summary</h3>
         <p className="text-sm text-primary/70 leading-6">
-          Feedback keeps the essentials only: sender name, message, IP, and submission time.
+          Feedback keeps the essentials only: sender name, reply email, message, IP, and submission time.
           Requests are protected with validation, rate limiting, and reCAPTCHA.
         </p>
         <button
@@ -330,6 +330,16 @@ function FeedbackInbox({ items, onDelete }) {
             <div>
               <h4 className="text-base font-semibold text-primary">{item.senderName || "Unknown sender"}</h4>
               <p className="text-sm text-primary/60">Feedback sender</p>
+              {item.senderEmail ? (
+                <a
+                  href={`mailto:${item.senderEmail}`}
+                  className="mt-1 inline-block text-sm text-primary/70 underline underline-offset-2 hover:text-primary"
+                >
+                  {item.senderEmail}
+                </a>
+              ) : (
+                <p className="mt-1 text-sm text-primary/50">No email provided</p>
+              )}
             </div>
             <button
               type="button"

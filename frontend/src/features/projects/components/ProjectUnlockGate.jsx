@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { portfolioApi } from '../../../services/api';
@@ -25,6 +25,24 @@ export default function ProjectUnlockGate({ projectId, onUnlock }) {
   const inputRefs = useRef([]);
 
   const { data: about } = useAbout();
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined;
+    }
+
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    const previousTouchAction = body.style.touchAction;
+
+    body.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.touchAction = previousTouchAction;
+    };
+  }, []);
 
   const socialLinks = about?.socials
     ? [
@@ -114,7 +132,7 @@ export default function ProjectUnlockGate({ projectId, onUnlock }) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col items-center justify-center px-3 md:px-5 overflow-hidden">
+    <div className="h-[calc(100vh-5rem)] bg-[var(--color-bg)] flex flex-col items-center justify-center px-3 md:px-5 overflow-hidden">
       <div className="mb-4 md:mb-6">
         <Motion.img
           src="/assets/images/woww.svg"

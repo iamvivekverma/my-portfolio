@@ -31,13 +31,13 @@ export function useProjects() {
   });
 }
 
-export function useProject(id, accessToken = "") {
+export function useProject(id, accessToken = "", { enabled = true } = {}) {
   const loader = useCallback(async () => {
     const res = await portfolioApi.getProjectById(id, { accessToken });
     return res?.data || null;
   }, [accessToken, id]);
 
-  return useApiResource(loader, { initialData: null, enabled: Boolean(id) });
+  return useApiResource(loader, { initialData: null, enabled: Boolean(id) && enabled });
 }
 
 export function useExperience() {

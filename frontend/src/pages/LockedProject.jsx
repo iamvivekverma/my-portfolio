@@ -9,5 +9,5 @@ export default function LockedProject() {
     return <NotFound />;
   }
 
-  return <Navigate to={`/project/${projectId}`} replace />;
+  return <Navigate to={`/project/${projectId}`} replace state={{ isLocked: true }} />;
 }

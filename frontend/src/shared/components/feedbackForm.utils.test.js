@@ -4,30 +4,37 @@ import assert from 'node:assert/strict';
 import {
   buildFeedbackPayload,
   getFriendlyFeedbackErrorMessage,
+  sanitizeFeedbackEmailInput,
   sanitizeFeedbackMessageInput,
   sanitizeFeedbackNameInput,
   validateFeedback,
 } from './feedbackForm.utils.js';
 
 test('validateFeedback accepts meaningful Hindi feedback', () => {
-  const result = validateFeedback('Vivek', 'यह साइट काफी अच्छी है और नेविगेशन भी बहुत आसान लग रहा है।');
+  const result = validateFeedback(
+    'Vivek',
+    'vivek@example.com',
+    'यह साइट काफी अच्छी है और नेविगेशन भी बहुत आसान लग रहा है।',
+  );
   assert.equal(result, '');
 });
 
 test('validateFeedback explains empty submissions', () => {
-  const result = validateFeedback('', '');
+  const result = validateFeedback('', '', '');
   assert.equal(result, 'Please enter your name.');
 });
 
 test('buildFeedbackPayload returns the expected submit payload', () => {
   const payload = buildFeedbackPayload({
     name: 'Vivek',
+    email: 'vivek@example.com',
     content: 'This portfolio is easy to understand and feels professional.',
     captchaToken: 'captcha-token',
   });
 
   assert.deepEqual(payload, {
     name: 'Vivek',
+    email: 'vivek@example.com',
     content: 'This portfolio is easy to understand and feels professional.',
     captchaToken: 'captcha-token',
   });
@@ -35,6 +42,7 @@ test('buildFeedbackPayload returns the expected submit payload', () => {
 
 test('input sanitizers strip HTML and unsafe characters', () => {
   assert.equal(sanitizeFeedbackNameInput('<b>Vivek123</b>'), ' Vivek ');
+  assert.equal(sanitizeFeedbackEmailInput(' <b>vivek@example.com</b> '), 'vivek@example.com');
   const sanitizedMessage = sanitizeFeedbackMessageInput('Hello <script>alert(1)</script><b>world</b> from feedback');
   assert.equal(sanitizedMessage.includes('<script>'), false);
   assert.equal(sanitizedMessage.includes('<b>'), false);
@@ -50,12 +58,19 @@ test('input sanitizers preserve natural spaces while typing', () => {
 test('buildFeedbackPayload normalizes spaces on submit', () => {
   const payload = buildFeedbackPayload({
     name: '  Vivek   Verma  ',
+    email: ' Vivek.Verma@Example.com ',
     content: 'This   portfolio is   very helpful.  ',
     captchaToken: 'captcha-token',
   });
 
   assert.equal(payload.name, 'Vivek Verma');
+  assert.equal(payload.email, 'vivek.verma@example.com');
   assert.equal(payload.content, 'This portfolio is very helpful.');
+});
+
+test('validateFeedback explains invalid email input', () => {
+  const result = validateFeedback('Vivek', 'not-an-email', 'This portfolio feels very polished.');
+  assert.equal(result, 'Please enter a valid email address.');
 });
 
 test('friendly feedback errors hide technical implementation details', () => {

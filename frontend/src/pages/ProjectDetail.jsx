@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaGithub, FaExternalLinkAlt, FaArrowLeft } from 'react-icons/fa';
 import ProjectUnlockGate from '../features/projects/components/ProjectUnlockGate';
 import { useProject } from '../hooks/usePortfolioData';
@@ -65,8 +65,18 @@ function storeAccess(projectId, accessToken, expiresAt) {
 
 function ProjectDetailContent({ projectId }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [accessState, setAccessState] = useState(() => readStoredAccess(projectId));
-  const { data: project, loading, error } = useProject(projectId, accessState.accessToken);
+  const [needsDetailFetch, setNeedsDetailFetch] = useState(() => {
+    if (readStoredAccess(projectId).accessToken) {
+      return true;
+    }
+
+    return !location.state?.isLocked;
+  });
+  const { data: project, loading, error } = useProject(projectId, accessState.accessToken, {
+    enabled: needsDetailFetch,
+  });
 
   async function handleUnlock({ accessToken, expiresAt }) {
     storeAccess(projectId, accessToken, expiresAt);
@@ -74,11 +84,16 @@ function ProjectDetailContent({ projectId }) {
       accessToken,
       expiresAt,
     });
+    setNeedsDetailFetch(true);
+  }
+
+  if (!needsDetailFetch) {
+    return <ProjectUnlockGate projectId={projectId} onUnlock={handleUnlock} />;
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
+      <div className="h-[calc(100vh-5rem)] bg-[var(--color-bg)] overflow-hidden flex items-center justify-center">
         <div className="animate-pulse text-primary font-bold">Loading project details...</div>
       </div>
     );

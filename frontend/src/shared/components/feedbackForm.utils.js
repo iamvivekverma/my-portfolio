@@ -5,6 +5,7 @@ const IS_DEV = Boolean(import.meta?.env?.DEV);
 const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
 const SCRIPT_TAG_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function replaceControlChars(value) {
   return Array.from(value, (char) => {
@@ -45,12 +46,23 @@ export function sanitizeFeedbackNameInput(name) {
     .slice(0, 80);
 }
 
+export function sanitizeFeedbackEmailInput(email) {
+  return stripHtml(email)
+    .replace(/\s+/g, '')
+    .slice(0, 160);
+}
+
 export function sanitizeFeedbackMessageInput(content) {
   return stripHtml(content).slice(0, 1000);
 }
 
-export function validateFeedback(name, content) {
+function normalizeFeedbackEmail(email) {
+  return sanitizeFeedbackEmailInput(email).trim().toLowerCase();
+}
+
+export function validateFeedback(name, email, content) {
   const trimmedName = normalizeForSubmit(sanitizeFeedbackNameInput(name));
+  const trimmedEmail = normalizeFeedbackEmail(email);
   const trimmedContent = normalizeForSubmit(sanitizeFeedbackMessageInput(content));
 
   if (!trimmedName) {
@@ -61,8 +73,20 @@ export function validateFeedback(name, content) {
     return 'Please enter a proper name.';
   }
 
+  if (!trimmedEmail) {
+    return 'Please enter your email address.';
+  }
+
+  if (!EMAIL_PATTERN.test(trimmedEmail)) {
+    return 'Please enter a valid email address.';
+  }
+
   if (!trimmedContent) {
     return 'Please write your message before submitting.';
+  }
+
+  if (trimmedContent.length < 5) {
+    return 'Please write a more detailed message (at least 5 characters).';
   }
 
   return '';
@@ -81,15 +105,16 @@ export function getFriendlyFeedbackErrorMessage(error) {
   }
 
   if (status === 400) {
-    return rawMessage || 'Please check your name and feedback message, then try again.';
+    return rawMessage || 'Please check your name, email, and message, then try again.';
   }
 
   return 'Failed to submit feedback. Please try again.';
 }
 
-export function buildFeedbackPayload({ name, content, captchaToken }) {
+export function buildFeedbackPayload({ name, email, content, captchaToken }) {
   return {
     name: normalizeForSubmit(sanitizeFeedbackNameInput(name)),
+    email: normalizeFeedbackEmail(email),
     content: normalizeForSubmit(sanitizeFeedbackMessageInput(content)),
     captchaToken,
   };
