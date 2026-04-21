@@ -6,6 +6,7 @@ import {
   getFeedbackCaptchaToken,
   getFeedbackClientId,
   loadRecaptchaScript,
+  setRecaptchaBadgeVisibility,
   sanitizeFeedbackMessageInput,
   sanitizeFeedbackNameInput,
   validateFeedback,
@@ -45,9 +46,17 @@ export default function FeedbackForm({ isOpen, onClose }) {
       setErrorMessage('');
 
       if (RECAPTCHA_SITE_KEY) {
-        loadRecaptchaScript(RECAPTCHA_SITE_KEY).catch(() => {});
+        loadRecaptchaScript(RECAPTCHA_SITE_KEY)
+          .then(() => setRecaptchaBadgeVisibility(true))
+          .catch(() => {});
       }
+    } else {
+      setRecaptchaBadgeVisibility(false);
     }
+
+    return () => {
+      setRecaptchaBadgeVisibility(false);
+    };
   }, [isOpen]);
 
   const handleSubmit = async (e) => {
@@ -184,6 +193,27 @@ export default function FeedbackForm({ isOpen, onClose }) {
               />
               <p className="mt-2 text-xs text-primary/50">
                 Write a clear message. Random text like "hi", "test", or meaningless words will not be accepted.
+              </p>
+              <p className="mt-2 text-xs leading-5 text-primary/45">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a
+                  href="https://policies.google.com/privacy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Privacy Policy
+                </a>{' '}
+                and{' '}
+                <a
+                  href="https://policies.google.com/terms"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Terms of Service
+                </a>{' '}
+                apply.
               </p>
             </div>
 

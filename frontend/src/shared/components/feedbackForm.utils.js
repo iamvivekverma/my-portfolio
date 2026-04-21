@@ -3,6 +3,7 @@ const RECAPTCHA_SCRIPT_ID = 'feedback-recaptcha-script';
 const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
 const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
 const IS_DEV = Boolean(import.meta?.env?.DEV);
+const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
 
 function stripHtml(value) {
   return typeof value === 'string'
@@ -123,6 +124,33 @@ export function loadRecaptchaScript(siteKey, documentRef = document) {
     script.onerror = () => reject(new Error('Unable to load CAPTCHA.'));
     documentRef.head.appendChild(script);
   });
+}
+
+export function setRecaptchaBadgeVisibility(isVisible, documentRef = document) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const applyVisibility = () => {
+    const badge = documentRef.querySelector(RECAPTCHA_BADGE_SELECTOR);
+
+    if (!badge) {
+      return false;
+    }
+
+    badge.style.visibility = isVisible ? 'visible' : 'hidden';
+    badge.style.opacity = isVisible ? '1' : '0';
+    badge.style.pointerEvents = isVisible ? 'auto' : 'none';
+    return true;
+  };
+
+  if (applyVisibility()) {
+    return;
+  }
+
+  window.setTimeout(() => {
+    applyVisibility();
+  }, 250);
 }
 
 export async function getFeedbackCaptchaToken(siteKey) {
