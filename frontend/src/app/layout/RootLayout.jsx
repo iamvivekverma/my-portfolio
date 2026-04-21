@@ -1,12 +1,34 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import MobileOverlay from "./MobileOverlay";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { primeProjectsCache } from "../../services/projectsCache";
 
 export default function RootLayout() {
   const location = useLocation();
   const hideFooterRoutes = ["/", "/locked-project"];
   const showFooter = !hideFooterRoutes.includes(location.pathname);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const warmProjects = () => {
+      primeProjectsCache().catch(() => {
+        // Keep prefetch failures silent and let the projects page handle retries.
+      });
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(warmProjects, { timeout: 1500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(warmProjects, 300);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   return (
     <div className="app">

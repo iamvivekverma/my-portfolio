@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { buildApiUrl, portfolioApi } from "../services/api";
+import { invalidateProjectsCache } from "../services/projectsCache";
 import {
   DndContext,
   closestCenter,
@@ -518,6 +519,7 @@ export default function Admin() {
       });
 
       if (res.ok) {
+        invalidateProjectsCache();
         setSuccess("Project created successfully!");
         setTimeout(() => setSuccess(""), 3000);
         fetchData("projects");
@@ -641,6 +643,10 @@ export default function Admin() {
       });
 
       if (res.ok) {
+        if (resource === "projects") {
+          invalidateProjectsCache();
+        }
+
         setSuccess("Deleted successfully!");
         setTimeout(() => setSuccess(""), 3000);
         fetchData(resource);
@@ -670,6 +676,10 @@ export default function Admin() {
       });
 
       if (res.ok) {
+        if (resource === "projects") {
+          invalidateProjectsCache();
+        }
+
         setSuccess("Updated successfully!");
         setTimeout(() => setSuccess(""), 3000);
         fetchData(resource);
@@ -700,6 +710,10 @@ export default function Admin() {
       });
 
       if (res.ok) {
+        if (resource === "projects") {
+          invalidateProjectsCache();
+        }
+
         setSuccess("Order updated successfully!");
         setTimeout(() => setSuccess(""), 3000);
         setData((prev) => ({ ...prev, [resource]: newOrder }));

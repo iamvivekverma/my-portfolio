@@ -8,6 +8,12 @@ const {
   verifyProjectAccessToken,
 } = require('../middlewares/adminAuth');
 
+const PUBLIC_PROJECTS_CACHE_TTL_MS = 1000 * 60 * 5;
+let publicProjectsCache = {
+  data: null,
+  expiresAt: 0,
+};
+
 function ensureValidProjectId(id) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw createHttpError(400, 'Invalid project ID format');
@@ -268,6 +274,28 @@ function normalizeProjectListItem(project) {
   };
 }
 
+function readPublicProjectsCache() {
+  if (!Array.isArray(publicProjectsCache.data) || publicProjectsCache.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return publicProjectsCache.data;
+}
+
+function writePublicProjectsCache(data) {
+  publicProjectsCache = {
+    data,
+    expiresAt: Date.now() + PUBLIC_PROJECTS_CACHE_TTL_MS,
+  };
+}
+
+function invalidatePublicProjectsCache() {
+  publicProjectsCache = {
+    data: null,
+    expiresAt: 0,
+  };
+}
+
 function normalizeProjectDetail(project, { isAdmin = false } = {}) {
   const { pin, ...rest } = project;
 
@@ -340,11 +368,30 @@ const getData = async (req, res) => {
       });
     }
 
+    if (!adminAccess.isAdmin) {
+      const cachedData = readPublicProjectsCache();
+
+      if (cachedData) {
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        return res.status(200).json({
+          success: true,
+          data: cachedData,
+        });
+      }
+    }
+
     const projects = await ProjectModel.find()
       .sort({ order: 1, createdAt: 1 })
       .lean();
 
     const data = adminAccess.isAdmin ? projects.map((project) => normalizeProjectDetail(project, { isAdmin: true })) : projects.map(normalizeProjectListItem);
+
+    if (adminAccess.isAdmin) {
+      res.setHeader('Cache-Control', 'private, no-store');
+    } else {
+      writePublicProjectsCache(data);
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
 
     return res.status(200).json({
       success: true,
@@ -450,6 +497,7 @@ const createData = async (req, res) => {
   try {
     const payload = normalizeProjectInput(req.body);
     const project = await ProjectModel.create(payload);
+    invalidatePublicProjectsCache();
 
     return res.status(201).json({
       success: true,
@@ -480,6 +528,7 @@ const updateData = async (req, res) => {
       new: true,
       runValidators: true,
     }).lean();
+    invalidatePublicProjectsCache();
 
     return res.json({
       success: true,
@@ -500,6 +549,8 @@ const deleteData = async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ success: false, message: messages.not_found.msg });
     }
+
+    invalidatePublicProjectsCache();
 
     return res.json({ success: true });
   } catch (error) {
@@ -572,6 +623,7 @@ const reorderProjects = async (req, res) => {
     });
 
     await ProjectModel.bulkWrite(bulkOps);
+    invalidatePublicProjectsCache();
 
     return res.json({ success: true });
   } catch (error) {
@@ -585,6 +637,7 @@ module.exports = {
   getData,
   getDataById,
   getImageById,
+  invalidatePublicProjectsCache,
   reorderProjects,
   updateData,
   verifyPin,

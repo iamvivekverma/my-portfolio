@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { portfolioApi } from "../services/api";
+import { getCachedProjects, primeProjectsCache } from "../services/projectsCache";
 import { useApiResource } from "./useApiResource";
 
 export function useAbout() {
@@ -21,12 +22,13 @@ export function useSkills() {
 }
 
 export function useProjects() {
-  const loader = useCallback(async () => {
-    const res = await portfolioApi.getProjects();
-    return res?.data || [];
-  }, []);
+  const cachedProjects = getCachedProjects();
+  const loader = useCallback(() => primeProjectsCache(), []);
 
-  return useApiResource(loader, { initialData: [] });
+  return useApiResource(loader, {
+    initialData: cachedProjects || [],
+    enabled: !cachedProjects,
+  });
 }
 
 export function useProject(id, accessToken = "") {
