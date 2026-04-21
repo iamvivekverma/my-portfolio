@@ -20,34 +20,6 @@ function isSpamContent(content) {
   return spamPatterns.some(pattern => pattern.test(lowerContent));
 }
 
-function isValidContent(content) {
-  // Check for gibberish - too many repeated characters
-  const repeatedCharPattern = /(.)\1{4,}/g;
-  if (repeatedCharPattern.test(content)) {
-    return false;
-  }
-
-  // Check for meaningful words - at least 2 words with 3+ letters
-  const words = content.split(/\s+/).filter(word => word.length >= 3);
-  if (words.length < 2) {
-    return false;
-  }
-
-  // Check for vowels - meaningful text should have vowels
-  const vowelCount = (content.match(/[aeiouAEIOU]/g) || []).length;
-  if (vowelCount < content.length * 0.1) { // At least 10% vowels
-    return false;
-  }
-
-  // Check for random keyboard mashing - consecutive keys
-  const keyboardMashPattern = /(asdf|qwer|zxcv|jkl;|1234|abcd)/i;
-  if (keyboardMashPattern.test(content)) {
-    return false;
-  }
-
-  return true;
-}
-
 const storeData = async (req, res) => {
   try {
     const { content } = req.body;
@@ -97,14 +69,6 @@ const storeData = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Content appears to be spam'
-      });
-    }
-
-    // Valid content check - detect random/gibberish messages
-    if (!isValidContent(trimmedContent)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter valid feedback'
       });
     }
 
