@@ -18,7 +18,10 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(payload?.message || payload?.error || `HTTP error! status: ${response.status}`);
+    const error = new Error(payload?.message || payload?.error || `HTTP error! status: ${response.status}`);
+    error.status = response.status;
+    error.data = payload;
+    throw error;
   }
 
   return payload;

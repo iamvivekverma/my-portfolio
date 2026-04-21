@@ -1,0 +1,105 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+const { storeData } = require('./FeedbackController');
+const { FeedbackModel } = require('../models/FeedbackModel');
+
+function createResponse() {
+  return {
+    statusCode: 200,
+    body: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+  };
+}
+
+function createRequest(body = {}) {
+  return {
+    body,
+    headers: {
+      'user-agent': 'test-agent',
+      origin: 'http://localhost:5173',
+      referer: 'http://localhost:5173/about',
+    },
+    ip: '127.0.0.1',
+  };
+}
+
+const originalCountDocuments = FeedbackModel.countDocuments;
+const originalFindOne = FeedbackModel.findOne;
+const originalSave = FeedbackModel.prototype.save;
+
+test.afterEach(() => {
+  FeedbackModel.countDocuments = originalCountDocuments;
+  FeedbackModel.findOne = originalFindOne;
+  FeedbackModel.prototype.save = originalSave;
+});
+
+test('storeData accepts Hindi feedback when checks pass', async () => {
+  FeedbackModel.countDocuments = async () => 0;
+  FeedbackModel.findOne = () => ({
+    lean: async () => null,
+  });
+  FeedbackModel.prototype.save = async function save() {
+    return this;
+  };
+
+  const req = createRequest({
+    name: 'Vivek',
+    content: 'यह पोर्टफोलियो काफी अच्छा है और इसका अनुभव बहुत स्मूद लग रहा है।',
+    metadata: {
+      clientId: 'client-1',
+    },
+  });
+  const res = createResponse();
+
+  await storeData(req, res);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(res.body.success, true);
+});
+
+test('storeData blocks repeated recent submissions by fingerprint', async () => {
+  FeedbackModel.countDocuments = async () => 3;
+
+  const req = createRequest({
+    name: 'Vivek',
+    content: 'This portfolio feels polished and easy to understand for visitors.',
+    metadata: {
+      clientId: 'client-2',
+    },
+  });
+  const res = createResponse();
+
+  await storeData(req, res);
+
+  assert.equal(res.statusCode, 429);
+  assert.equal(res.body.success, false);
+});
+
+test('storeData blocks duplicate feedback content from the same fingerprint', async () => {
+  FeedbackModel.countDocuments = async () => 0;
+  FeedbackModel.findOne = () => ({
+    lean: async () => ({ _id: 'duplicate-feedback' }),
+  });
+
+  const req = createRequest({
+    name: 'Vivek',
+    content: 'This portfolio feels polished and easy to understand for visitors.',
+    metadata: {
+      clientId: 'client-3',
+    },
+  });
+  const res = createResponse();
+
+  await storeData(req, res);
+
+  assert.equal(res.statusCode, 409);
+  assert.equal(res.body.success, false);
+});

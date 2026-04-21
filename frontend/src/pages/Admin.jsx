@@ -214,7 +214,7 @@ function FeedbackOverview({ items, onRefresh, loading }) {
   const today = new Date();
   const todayKey = today.toDateString();
   const todayCount = (items || []).filter((item) => new Date(item.createdAt).toDateString() === todayKey).length;
-  const withEmailCount = (items || []).filter((item) => item.senderEmail).length;
+  const namedSendersCount = (items || []).filter((item) => item.senderName).length;
 
   return (
     <div className="space-y-4">
@@ -228,16 +228,16 @@ function FeedbackOverview({ items, onRefresh, loading }) {
           <p className="text-3xl font-bold text-primary">{todayCount}</p>
         </div>
         <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
-          <p className="text-sm text-primary/60">Identifiable senders</p>
-          <p className="text-3xl font-bold text-primary">{withEmailCount}</p>
+          <p className="text-sm text-primary/60">Named senders</p>
+          <p className="text-3xl font-bold text-primary">{namedSendersCount}</p>
         </div>
       </div>
 
       <div className="rounded-2xl border border-primary/10 bg-white p-5">
         <h3 className="text-lg font-semibold text-primary mb-2">Protection summary</h3>
         <p className="text-sm text-primary/70 leading-6">
-          Feedback now captures sender name, email, IP, browser metadata, page source, and submission time.
-          Duplicate, too-fast, random, link-heavy, and spammy submissions are rejected automatically.
+          Feedback now captures sender name, IP, browser metadata, page source, and submission time.
+          Duplicate, random, link-heavy, and spammy submissions are rejected automatically.
         </p>
         <button
           type="button"
@@ -264,7 +264,7 @@ function FeedbackInbox({ items, onDelete }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h4 className="text-base font-semibold text-primary">{item.senderName || "Unknown sender"}</h4>
-              <p className="text-sm text-primary/70">{item.senderEmail || "No email"}</p>
+              <p className="text-sm text-primary/60">Feedback sender</p>
             </div>
             <button
               type="button"
@@ -338,7 +338,7 @@ export default function Admin() {
 
   const fetchData = useCallback(async (resource, token = adminToken) => {
     if (!token) {
-      return;
+      return { ok: false, message: "Missing admin session." };
     }
 
     try {
@@ -352,15 +352,22 @@ export default function Admin() {
 
       if (res.status === 401) {
         resetSession("Session expired. Please log in again.");
-        return;
+        return { ok: false, message: "Session expired. Please log in again." };
+      }
+
+      if (!res.ok) {
+        return { ok: false, message: json?.message || `Failed to load ${resource}.` };
       }
 
       setData((prev) => ({
         ...prev,
         [resource]: resource === "about" ? json?.data ?? null : json?.data ?? [],
       }));
+
+      return { ok: true };
     } catch (fetchError) {
       console.error(fetchError);
+      return { ok: false, message: `Failed to load ${resource}.` };
     }
   }, [adminToken]);
 
@@ -419,6 +426,24 @@ export default function Admin() {
 
   const handleLogout = () => {
     resetSession("");
+  };
+
+  const handleRefreshFeedback = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await fetchData("feedback");
+
+      if (result?.ok) {
+        setSuccess("Feedback inbox refreshed.");
+        setTimeout(() => setSuccess(""), 2500);
+      } else {
+        setError(result?.message || "Unable to refresh feedback inbox.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProjectCreate = async (payload) => {
@@ -749,7 +774,7 @@ export default function Admin() {
             {active === "feedback" ? (
               <FeedbackOverview
                 items={data.feedback}
-                onRefresh={() => fetchData("feedback")}
+                onRefresh={handleRefreshFeedback}
                 loading={loading}
               />
             ) : (

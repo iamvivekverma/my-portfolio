@@ -1,58 +1,69 @@
 import { useEffect, useState } from 'react';
 import { portfolioApi } from '../../services/api';
 import { toast } from 'react-toastify';
+import { buildFeedbackPayload, getFeedbackClientId, validateFeedback } from './feedbackForm.utils';
+
+function createFeedbackRequest({ name, content, honeypot }) {
+  return buildFeedbackPayload({
+    name,
+    content,
+    honeypot,
+    metadata: {
+      pageUrl: window.location.href,
+      referrer: document.referrer,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+      language: navigator.language || '',
+      platform: navigator.userAgentData?.platform || navigator.platform || '',
+      screen: `${window.screen.width}x${window.screen.height}`,
+      clientId: getFeedbackClientId(),
+    },
+  });
+}
 
 export default function FeedbackForm({ isOpen, onClose }) {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setFormStartedAt(Date.now());
       setSubmitted(false);
+      setErrorMessage('');
     }
   }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Honeypot check - if filled, it's a bot
     if (honeypot) {
-      console.log('Bot detected via honeypot');
+      setErrorMessage('Your submission could not be accepted. Please try again with a normal message.');
       return;
     }
 
-    if (!name.trim() || !email.trim() || !content.trim()) {
+    const validationMessage = validateFeedback(name, content);
+
+    if (validationMessage) {
+      setErrorMessage(validationMessage);
       return;
     }
 
     setLoading(true);
+    setErrorMessage('');
+
     try {
-      await portfolioApi.submitFeedback({
-        name,
-        email,
-        content,
-        honeypot,
-        formStartedAt,
-        submittedAt: Date.now(),
-        metadata: {
-          pageUrl: window.location.href,
-          referrer: document.referrer,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-          language: navigator.language || '',
-          platform: navigator.userAgentData?.platform || navigator.platform || '',
-          screen: `${window.screen.width}x${window.screen.height}`,
-        },
-      });
+      await portfolioApi.submitFeedback(
+        createFeedbackRequest({
+          name,
+          content,
+          honeypot,
+        })
+      );
 
       toast.success('Thank you for your feedback!');
       setName('');
-      setEmail('');
       setContent('');
       setSubmitted(true);
       setTimeout(() => {
@@ -60,7 +71,9 @@ export default function FeedbackForm({ isOpen, onClose }) {
         onClose();
       }, 2000);
     } catch (error) {
-      toast.error(error.message || 'Failed to submit feedback. Please try again.');
+      const message = error.message || 'Failed to submit feedback. Please try again.';
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -69,24 +82,24 @@ export default function FeedbackForm({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-primary" style={{ fontFamily: "var(--font-display)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-primary" style={{ fontFamily: 'var(--font-display)' }}>
             Send Feedback
           </h2>
           <button
             onClick={onClose}
-            className="text-primary/60 hover:text-primary text-2xl leading-none"
+            className="text-2xl leading-none text-primary/60 hover:text-primary"
           >
             &times;
           </button>
         </div>
 
         {submitted ? (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">🎉</div>
-            <h3 className="text-xl font-bold text-primary mb-2" style={{ fontFamily: "var(--font-display)" }}>
+          <div className="py-8 text-center">
+            <div className="mb-4 text-6xl">🎉</div>
+            <h3 className="mb-2 text-xl font-bold text-primary" style={{ fontFamily: 'var(--font-display)' }}>
               Thank you!
             </h3>
             <p className="text-primary/70">
@@ -95,85 +108,81 @@ export default function FeedbackForm({ isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Honeypot field for bot detection - hidden from real users */}
-          <input
-            type="text"
-            name="website"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-            tabIndex={-1}
-            autoComplete="off"
-            style={{ position: 'absolute', left: '-5000px' }}
-            aria-hidden="true"
-          />
-
-          <div>
-            <label className="block text-sm font-semibold text-primary mb-2">
-              Your Name
-            </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary"
-              required
-              minLength={2}
-              maxLength={80}
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              style={{ position: 'absolute', left: '-5000px' }}
+              aria-hidden="true"
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-primary mb-2">
-              Your Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email address"
-              className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary"
-              required
-              maxLength={120}
-            />
-          </div>
+            {errorMessage && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            )}
 
-          <div>
-            <label className="block text-sm font-semibold text-primary mb-2">
-              Your Feedback
-            </label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={4}
-              placeholder="Share your thoughts, suggestions, or report issues..."
-              className="w-full border border-primary/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-primary resize-none"
-              required
-              minLength={15}
-              maxLength={1000}
-            />
-            <p className="mt-2 text-xs text-primary/50">
-              Please keep the message clear and relevant. Spam or meaningless text will be rejected.
-            </p>
-          </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-primary">
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errorMessage) {
+                    setErrorMessage('');
+                  }
+                }}
+                placeholder="Enter your name"
+                className="w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                maxLength={80}
+              />
+            </div>
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 rounded-xl border border-primary/20 text-primary font-medium hover:bg-primary/5 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !name.trim() || !email.trim() || !content.trim()}
-              className="flex-1 bg-[var(--color-primary)] text-white px-4 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Submit'}
-            </button>
-          </div>
-        </form>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-primary">
+                Your Feedback
+              </label>
+              <textarea
+                value={content}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  if (errorMessage) {
+                    setErrorMessage('');
+                  }
+                }}
+                rows={4}
+                placeholder="Share your thoughts, suggestions, or report issues..."
+                className="w-full resize-none rounded-xl border border-primary/20 bg-white px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                maxLength={1000}
+              />
+              <p className="mt-2 text-xs text-primary/50">
+                Write a clear message. Random text like "hi", "test", or meaningless words will not be accepted.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 rounded-xl border border-primary/20 px-4 py-3 font-medium text-primary transition-colors hover:bg-primary/5"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 rounded-xl bg-[var(--color-primary)] px-4 py-3 font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? 'Sending...' : 'Submit'}
+              </button>
+            </div>
+          </form>
         )}
       </div>
     </div>

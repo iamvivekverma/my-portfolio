@@ -10,13 +10,6 @@ const feedbackSchema = new Schema({
     maxlength: 80,
     trim: true,
   },
-  senderEmail: {
-    type: String,
-    required: true,
-    lowercase: true,
-    trim: true,
-    maxlength: 120,
-  },
   content: {
     type: String,
     required: true,
@@ -54,6 +47,7 @@ const feedbackSchema = new Schema({
     language: String,
     platform: String,
     screen: String,
+    clientId: String,
   },
   createdAt: {
     type: Date,
@@ -62,7 +56,7 @@ const feedbackSchema = new Schema({
   },
 });
 
-feedbackSchema.index({ senderEmail: 1, createdAt: -1 });
+feedbackSchema.index({ senderName: 1, createdAt: -1 });
 
 const FeedbackModel = mongoose.model('Feedback', feedbackSchema);
 
