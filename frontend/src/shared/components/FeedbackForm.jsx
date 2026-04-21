@@ -3,6 +3,7 @@ import { portfolioApi } from '../../services/api';
 import { toast } from 'react-toastify';
 import {
   buildFeedbackPayload,
+  getFriendlyFeedbackErrorMessage,
   getFeedbackCaptchaToken,
   getFeedbackClientId,
   loadRecaptchaScript,
@@ -63,7 +64,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
     e.preventDefault();
 
     if (honeypot) {
-      setErrorMessage('Your submission could not be accepted. Please try again with a normal message.');
+      setErrorMessage('Something went wrong while sending your feedback. Please try again.');
       return;
     }
 
@@ -98,7 +99,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
         onClose();
       }, 2000);
     } catch (error) {
-      const message = error.message || 'Failed to submit feedback. Please try again.';
+      const message = getFriendlyFeedbackErrorMessage(error);
       setErrorMessage(message);
       toast.error(message);
     } finally {
@@ -192,10 +193,10 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 autoComplete="off"
               />
               <p className="mt-2 text-xs text-primary/50">
-                Write a clear message. Random text like "hi", "test", or meaningless words will not be accepted.
+                Share your thoughts, suggestions, or anything that could make the experience better.
               </p>
               <p className="mt-2 text-xs leading-5 text-primary/45">
-                This site is protected by reCAPTCHA and the Google{' '}
+                A quick security check runs when you send this form. Google&apos;s{' '}
                 <a
                   href="https://policies.google.com/privacy"
                   target="_blank"

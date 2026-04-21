@@ -4,16 +4,30 @@ const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
 const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
 const IS_DEV = Boolean(import.meta?.env?.DEV);
 const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
+const SCRIPT_TAG_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
+const CONTROL_CHARS_PATTERN = /[\u0000-\u001F\u007F]/g;
 
-function stripHtml(value) {
-  return typeof value === 'string'
-    ? value
-        .normalize('NFKC')
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
-        .replace(/<\/?[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-    : '';
+function stripHtml(value, { collapseWhitespace = false, trim = false } = {}) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const sanitized = value
+    .normalize('NFKC')
+    .replace(SCRIPT_TAG_PATTERN, ' ')
+    .replace(HTML_TAG_PATTERN, ' ')
+    .replace(CONTROL_CHARS_PATTERN, ' ')
+    .replace(collapseWhitespace ? /\s+/g : /\r\n?/g, collapseWhitespace ? ' ' : '\n');
+
+  return trim ? sanitized.trim() : sanitized;
+}
+
+function normalizeForSubmit(value) {
+  return stripHtml(value, {
+    collapseWhitespace: true,
+    trim: true,
+  });
 }
 
 export function getFeedbackClientId(storage = window.localStorage, cryptoRef = window.crypto) {
@@ -41,8 +55,8 @@ export function sanitizeFeedbackMessageInput(content) {
 }
 
 export function validateFeedback(name, content) {
-  const trimmedName = sanitizeFeedbackNameInput(name).trim();
-  const trimmedContent = sanitizeFeedbackMessageInput(content).trim();
+  const trimmedName = normalizeForSubmit(sanitizeFeedbackNameInput(name));
+  const trimmedContent = normalizeForSubmit(sanitizeFeedbackMessageInput(content));
   const normalized = trimmedContent.toLowerCase().replace(/\s+/g, ' ');
   const wordCount = trimmedContent.split(/\s+/).filter(Boolean).length;
   const letterChars = (trimmedContent.match(/\p{L}/gu) || []).length;
@@ -78,10 +92,37 @@ export function validateFeedback(name, content) {
   return '';
 }
 
+export function getFriendlyFeedbackErrorMessage(error) {
+  const status = error?.status;
+  const rawMessage = error?.message || '';
+
+  if (status === 429) {
+    return 'Too many attempts right now. Please wait a little and try again.';
+  }
+
+  if (status === 409) {
+    return 'This feedback looks like it was already sent recently.';
+  }
+
+  if (status === 403 || /captcha/i.test(rawMessage)) {
+    return "I couldn't verify the submission just now. Please try once more.";
+  }
+
+  if (status === 422) {
+    return 'Please send a normal feedback message without links or promotional text.';
+  }
+
+  if (status === 400) {
+    return 'Please check your name and feedback message, then try again.';
+  }
+
+  return 'Failed to submit feedback. Please try again.';
+}
+
 export function buildFeedbackPayload({ name, content, honeypot, metadata, captchaToken }) {
   return {
-    name: sanitizeFeedbackNameInput(name),
-    content: sanitizeFeedbackMessageInput(content),
+    name: normalizeForSubmit(sanitizeFeedbackNameInput(name)),
+    content: normalizeForSubmit(sanitizeFeedbackMessageInput(content)),
     honeypot,
     captchaToken,
     metadata,
