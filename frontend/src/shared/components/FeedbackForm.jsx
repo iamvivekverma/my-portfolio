@@ -4,11 +4,17 @@ import { toast } from 'react-toastify';
 
 export default function FeedbackForm({ isOpen, onClose }) {
   const [content, setContent] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Honeypot check - if filled, it's a bot
+    if (honeypot) {
+      console.log('Bot detected via honeypot');
+      return;
+    }
     if (!content.trim()) return;
 
     setLoading(true);
@@ -57,6 +63,18 @@ export default function FeedbackForm({ isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Honeypot field for bot detection - hidden from real users */}
+          <input
+            type="text"
+            name="website"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            style={{ position: 'absolute', left: '-5000px' }}
+            aria-hidden="true"
+          />
+
           <div>
             <label className="block text-sm font-semibold text-primary mb-2">
               Your Feedback
