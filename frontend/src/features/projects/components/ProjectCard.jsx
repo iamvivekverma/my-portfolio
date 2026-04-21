@@ -24,7 +24,8 @@ export default function ProjectCard() {
     badge: item.badge,
     githubLink: item.githubLink,
     liveLink: item.liveLink,
-    image: item.image || (item._id ? buildApiUrl(`/projects/${item._id}/image`) : null),
+    isLocked: Boolean(item.isLocked),
+    image: !item.isLocked && item._id ? buildApiUrl(`/projects/${item._id}/image`) : null,
   }));
 
   const badgeStyle = {
@@ -38,9 +39,9 @@ export default function ProjectCard() {
       <div className="flex flex-col sm:flex-row gap-5 overflow-x-auto px-4 pb-2 scrollbar-hide">
         {loading
           ? [1,2,3].map(i => <SkeletonCard key={i} />)
-          : projects.map((project, index) => (
+          : projects.map((project) => (
               <div
-                key={index}
+                key={project._id}
                 className="bg-[var(--color-accent)] rounded-2xl p-4 sm:max-w-[320px] flex flex-col gap-4 flex-shrink-0
                            transition-transform duration-300 hover:-translate-y-1"
               >
@@ -70,10 +71,10 @@ export default function ProjectCard() {
                 {/* Button */}
                 <div className="mt-auto flex items-center justify-end flex-shrink-0">
                   <Link
-                    to={`/locked-project?id=${project._id || index}`}
+                    to={`/project/${project._id}`}
                     className="flex items-center gap-2 text-xs px-3.5 py-2 rounded-lg border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 font-medium"
                   >
-                    see more &gt;&gt;
+                    {project.isLocked ? 'unlock project >>' : 'see more >>'}
                   </Link>
                 </div>
               </div>

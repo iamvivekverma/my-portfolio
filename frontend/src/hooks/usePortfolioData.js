@@ -29,11 +29,11 @@ export function useProjects() {
   return useApiResource(loader, { initialData: [] });
 }
 
-export function useProject(id) {
+export function useProject(id, accessToken = "") {
   const loader = useCallback(async () => {
-    const res = await portfolioApi.getProjectById(id);
+    const res = await portfolioApi.getProjectById(id, { accessToken });
     return res?.data || null;
-  }, [id]);
+  }, [accessToken, id]);
 
   return useApiResource(loader, { initialData: null, enabled: Boolean(id) });
 }

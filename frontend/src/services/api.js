@@ -4,6 +4,14 @@ export function buildApiUrl(path) {
   return `${API_BASE}/${path.replace(/^\/+/, '')}`;
 }
 
+function createProjectAccessHeaders(accessToken) {
+  return accessToken
+    ? {
+        'x-project-access-token': accessToken,
+      }
+    : {};
+}
+
 async function request(endpoint, options = {}) {
   const response = await fetch(buildApiUrl(endpoint), options);
   const text = await response.text();
@@ -67,7 +75,14 @@ export const api = {
 export const portfolioApi = {
   // Projects
   getProjects: () => api.get('/projects'),
-  getProjectById: (id) => api.get(`/projects/${id}`),
+  getProjectById: (id, { accessToken = '', headers = {}, ...options } = {}) =>
+    api.get(`/projects/${id}`, {
+      ...options,
+      headers: {
+        ...createProjectAccessHeaders(accessToken),
+        ...headers,
+      },
+    }),
   createProject: (data) => api.post('/projects', data),
   updateProject: (id, data) => api.put(`/projects/${id}`, data),
   deleteProject: (id) => api.delete(`/projects/${id}`),

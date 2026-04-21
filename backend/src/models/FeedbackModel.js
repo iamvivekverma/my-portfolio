@@ -14,7 +14,7 @@ const feedbackSchema = new Schema(
     content: {
       type: String,
       required: true,
-      minlength: 15,
+      minlength: 5,
       maxlength: 1000,
       trim: true,
     },

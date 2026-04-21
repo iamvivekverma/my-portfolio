@@ -5,7 +5,14 @@ const IS_DEV = Boolean(import.meta?.env?.DEV);
 const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
 const SCRIPT_TAG_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
-const CONTROL_CHARS_PATTERN = /[\u0000-\u001F\u007F]/g;
+
+function replaceControlChars(value) {
+  return Array.from(value, (char) => {
+    const code = char.charCodeAt(0);
+
+    return code < 32 || code === 127 ? ' ' : char;
+  }).join('');
+}
 
 function stripHtml(value, { collapseWhitespace = false, trim = false } = {}) {
   if (typeof value !== 'string') {
@@ -15,11 +22,14 @@ function stripHtml(value, { collapseWhitespace = false, trim = false } = {}) {
   const sanitized = value
     .normalize('NFKC')
     .replace(SCRIPT_TAG_PATTERN, ' ')
-    .replace(HTML_TAG_PATTERN, ' ')
-    .replace(CONTROL_CHARS_PATTERN, ' ')
+    .replace(HTML_TAG_PATTERN, ' ');
+
+  const withoutControlChars = replaceControlChars(sanitized);
+
+  const normalized = withoutControlChars
     .replace(collapseWhitespace ? /\s+/g : /\r\n?/g, collapseWhitespace ? ' ' : '\n');
 
-  return trim ? sanitized.trim() : sanitized;
+  return trim ? normalized.trim() : normalized;
 }
 
 function normalizeForSubmit(value) {
@@ -42,8 +52,6 @@ export function sanitizeFeedbackMessageInput(content) {
 export function validateFeedback(name, content) {
   const trimmedName = normalizeForSubmit(sanitizeFeedbackNameInput(name));
   const trimmedContent = normalizeForSubmit(sanitizeFeedbackMessageInput(content));
-  const wordCount = trimmedContent.split(/\s+/).filter(Boolean).length;
-  const letterChars = (trimmedContent.match(/\p{L}/gu) || []).length;
 
   if (!trimmedName) {
     return 'Please enter your name.';
@@ -57,10 +65,6 @@ export function validateFeedback(name, content) {
     return 'Please write your message before submitting.';
   }
 
-  if (trimmedContent.length < 15 || wordCount < 3 || letterChars < 8) {
-    return 'Please type a proper message with a little more detail so I can understand your feedback.';
-  }
-
   return '';
 }
 
@@ -69,15 +73,15 @@ export function getFriendlyFeedbackErrorMessage(error) {
   const rawMessage = error?.message || '';
 
   if (status === 429) {
-    return 'Too many attempts right now. Please wait a little and try again.';
+    return rawMessage || 'Too many attempts right now. Please wait a little and try again.';
   }
 
   if (status === 403 || /captcha/i.test(rawMessage)) {
-    return "I couldn't verify the submission just now. Please try once more.";
+    return rawMessage || "I couldn't verify the submission just now. Please try once more.";
   }
 
   if (status === 400) {
-    return 'Please check your name and feedback message, then try again.';
+    return rawMessage || 'Please check your name and feedback message, then try again.';
   }
 
   return 'Failed to submit feedback. Please try again.';

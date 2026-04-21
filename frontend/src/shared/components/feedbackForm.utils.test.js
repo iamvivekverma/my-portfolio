@@ -61,11 +61,15 @@ test('buildFeedbackPayload normalizes spaces on submit', () => {
 test('friendly feedback errors hide technical implementation details', () => {
   assert.equal(
     getFriendlyFeedbackErrorMessage({ status: 403, message: 'CAPTCHA verification failed. Please try again.' }),
-    "I couldn't verify the submission just now. Please try once more.",
+    'CAPTCHA verification failed. Please try again.',
   );
   assert.equal(
     getFriendlyFeedbackErrorMessage({ status: 429, message: 'Too many feedback attempts.' }),
-    'Too many attempts right now. Please wait a little and try again.',
+    'Too many feedback attempts.',
+  );
+  assert.equal(
+    getFriendlyFeedbackErrorMessage({ status: 400, message: 'Please write a more detailed message.' }),
+    'Please write a more detailed message.',
   );
   assert.equal(
     getFriendlyFeedbackErrorMessage({ status: 500, message: 'Internal error' }),

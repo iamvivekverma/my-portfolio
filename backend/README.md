@@ -39,7 +39,10 @@ CHATBOT_DAILY_LIMIT=80
 
 # Admin
 ADMIN_SECRET=choose-a-strong-secret
+PROJECT_ACCESS_SECRET=choose-a-separate-strong-secret
 ```
+
+`PROJECT_ACCESS_SECRET` is used to sign temporary access tokens for locked project pages. For production, keep it different from `ADMIN_SECRET`.
 
 ### 4. Start the Server
 ```bash

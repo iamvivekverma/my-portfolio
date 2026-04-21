@@ -112,6 +112,7 @@ function createEmptyProjectForm() {
   return {
     title: "",
     description: "",
+    fullDescription: "",
     technologies: "",
     liveLink: "",
     githubLink: "",
@@ -129,12 +130,75 @@ function createProjectFormState(initial) {
   return {
     title: initial.title || "",
     description: initial.description || "",
+    fullDescription: initial.fullDescription || "",
     technologies: initial.technologies?.join(", ") || "",
     liveLink: initial.liveLink || "",
     githubLink: initial.githubLink || "",
     badge: initial.badge || "",
     pin: initial.pin || "",
     image: initial.image || "",
+  };
+}
+
+function createEmptySkillForm() {
+  return {
+    name: "",
+    level: 0,
+    category: "",
+    icon: "",
+    order: 0,
+    desc: "",
+  };
+}
+
+function createSkillFormState(initial) {
+  if (!initial) {
+    return createEmptySkillForm();
+  }
+
+  return {
+    name: initial.name || "",
+    level: typeof initial.level === "number" ? initial.level : 0,
+    category: initial.category || "",
+    icon: initial.icon || "",
+    order: typeof initial.order === "number" ? initial.order : 0,
+    desc: initial.desc || "",
+  };
+}
+
+function createEmptyExperienceForm() {
+  return {
+    number: "",
+    era: "",
+    category: "",
+    title: "",
+    subtitle: "",
+    body: "",
+    tags: "",
+    statValue: "",
+    statLabel: "",
+    isPulse: false,
+    order: 0,
+  };
+}
+
+function createExperienceFormState(initial) {
+  if (!initial) {
+    return createEmptyExperienceForm();
+  }
+
+  return {
+    number: initial.number || "",
+    era: initial.era || "",
+    category: initial.category || "",
+    title: initial.title || "",
+    subtitle: initial.subtitle || "",
+    body: initial.body || "",
+    tags: initial.tags?.join(", ") || "",
+    statValue: initial.stat?.value || "",
+    statLabel: initial.stat?.label || "",
+    isPulse: Boolean(initial.isPulse),
+    order: typeof initial.order === "number" ? initial.order : 0,
   };
 }
 
@@ -280,10 +344,7 @@ function FeedbackInbox({ items, onDelete }) {
           <div className="mt-4 grid gap-2 text-xs text-primary/60">
             <p><span className="font-semibold text-primary/70">Received:</span> {formatFeedbackDate(item.createdAt)}</p>
             <p><span className="font-semibold text-primary/70">IP:</span> {item.ip || "Unknown"}</p>
-            <p><span className="font-semibold text-primary/70">Platform:</span> {item.clientMeta?.platform || item.userAgent || "Unknown"}</p>
-            <p><span className="font-semibold text-primary/70">Timezone:</span> {item.clientMeta?.timezone || "Unknown"}</p>
-            <p><span className="font-semibold text-primary/70">Language:</span> {item.clientMeta?.language || "Unknown"}</p>
-            <p><span className="font-semibold text-primary/70">Page:</span> {item.clientMeta?.pageUrl || item.referrer || "Unknown"}</p>
+            <p><span className="font-semibold text-primary/70">User agent:</span> {item.userAgent || "Unknown"}</p>
           </div>
         </article>
       ))}
@@ -912,6 +973,7 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
     const data = {
       title: form.title.trim(),
       description: form.description.trim(),
+      fullDescription: form.fullDescription.trim() || null,
       technologies: form.technologies
         .split(",")
         .map((item) => item.trim())
@@ -962,6 +1024,11 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
       )}
       <Input label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} />
       <Textarea label="Description" value={form.description} onChange={(value) => setForm({ ...form, description: value })} />
+      <Textarea
+        label="Full Description (optional)"
+        value={form.fullDescription}
+        onChange={(value) => setForm({ ...form, fullDescription: value })}
+      />
       <Input
         label="Technologies (comma separated)"
         value={form.technologies}
@@ -1012,82 +1079,124 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
   );
 }
 
-function SkillForm({ onCreate, loading }) {
-  const [form, setForm] = useState({
-    name: "",
-    level: 0,
-    category: "",
-    icon: "",
-    order: 0,
-    color: "",
-    desc: "",
-  });
+function SkillForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loading }) {
+  const [form, setForm] = useState(() => createSkillFormState(initial));
+  const [submitError, setSubmitError] = useState("");
 
   return (
     <form
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        onCreate(form);
-        setForm({ name: "", level: 0, category: "", icon: "", order: 0, color: "", desc: "" });
+
+        const payload = {
+          name: form.name.trim(),
+          level: Number(form.level) || 0,
+          category: form.category.trim() || "general",
+          icon: form.icon.trim() || null,
+          order: Number(form.order) || 0,
+          desc: form.desc.trim(),
+        };
+
+        if (!payload.name) {
+          setSubmitError("Skill name is required.");
+          return;
+        }
+
+        setSubmitError("");
+
+        if (isEditing && initial?._id) {
+          onUpdate(initial._id, payload);
+          return;
+        }
+
+        onCreate(payload);
+        setForm(createEmptySkillForm());
       }}
     >
+      {submitError && (
+        <div className="rounded-xl border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
       <Input label="Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} />
       <Input label="Level (0-100)" type="number" value={form.level} onChange={(value) => setForm({ ...form, level: Number(value) })} />
       <Input label="Category (Frontend, Backend, Database, Tools)" value={form.category} onChange={(value) => setForm({ ...form, category: value })} />
-      <Input label="Color (hex code, e.g., #61DAFB)" value={form.color} onChange={(value) => setForm({ ...form, color: value })} />
       <Input label="Icon (optional URL or name)" value={form.icon} onChange={(value) => setForm({ ...form, icon: value })} />
       <Input label="Description" value={form.desc} onChange={(value) => setForm({ ...form, desc: value })} />
       <Input label="Order" type="number" value={form.order} onChange={(value) => setForm({ ...form, order: Number(value) })} />
-      <button
-        disabled={loading}
-        className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? "Saving..." : "Save Skill"}
-      </button>
+      <div className="flex gap-3">
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="bg-gray-100 text-primary px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          disabled={loading}
+          className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+        >
+          {loading ? "Saving..." : isEditing ? "Update Skill" : "Save Skill"}
+        </button>
+      </div>
     </form>
   );
 }
 
-function ExperienceForm({ onCreate, loading }) {
-  const [form, setForm] = useState({
-    number: "",
-    era: "",
-    category: "",
-    title: "",
-    subtitle: "",
-    body: "",
-    tags: "",
-    statValue: "",
-    statLabel: "",
-    isPulse: false,
-  });
+function ExperienceForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loading }) {
+  const [form, setForm] = useState(() => createExperienceFormState(initial));
+  const [submitError, setSubmitError] = useState("");
 
   return (
     <form
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        onCreate({
-          ...form,
+
+        const payload = {
+          number: form.number.trim(),
+          era: form.era.trim(),
+          category: form.category.trim(),
+          title: form.title.trim(),
+          subtitle: form.subtitle.trim() || null,
+          body: form.body.trim(),
           tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-          stat: { value: form.statValue, label: form.statLabel },
+          stat: {
+            value: form.statValue.trim(),
+            label: form.statLabel.trim(),
+          },
           isPulse: form.isPulse,
-        });
-        setForm({
-          number: "",
-          era: "",
-          category: "",
-          title: "",
-          subtitle: "",
-          body: "",
-          tags: "",
-          statValue: "",
-          statLabel: "",
-          isPulse: false,
-        });
+          order: Number(form.order) || 0,
+        };
+
+        if (!payload.number || !payload.era || !payload.category || !payload.title || !payload.body) {
+          setSubmitError("Number, era, category, title, and body are required.");
+          return;
+        }
+
+        setSubmitError("");
+
+        if (!payload.stat.value && !payload.stat.label) {
+          delete payload.stat;
+        }
+
+        if (isEditing && initial?._id) {
+          onUpdate(initial._id, payload);
+          return;
+        }
+
+        onCreate(payload);
+        setForm(createEmptyExperienceForm());
       }}
     >
+      {submitError && (
+        <div className="rounded-xl border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
       <Input label="Number (e.g., 01, 02)" value={form.number} onChange={(value) => setForm({ ...form, number: value })} />
       <Input label="Era (e.g., 2020 - 2023, 2025, Present)" value={form.era} onChange={(value) => setForm({ ...form, era: value })} />
       <Input label="Category (e.g., EDUCATION, TRANSITION, SKILL, NOW)" value={form.category} onChange={(value) => setForm({ ...form, category: value })} />
@@ -1097,6 +1206,7 @@ function ExperienceForm({ onCreate, loading }) {
       <Input label="Tags (comma separated)" value={form.tags} onChange={(value) => setForm({ ...form, tags: value })} />
       <Input label="Stat Value (e.g., 3, 7th, MERN)" value={form.statValue} onChange={(value) => setForm({ ...form, statValue: value })} />
       <Input label="Stat Label (e.g., Years of engineering foundation)" value={form.statLabel} onChange={(value) => setForm({ ...form, statLabel: value })} />
+      <Input label="Order" type="number" value={form.order} onChange={(value) => setForm({ ...form, order: Number(value) })} />
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -1106,12 +1216,23 @@ function ExperienceForm({ onCreate, loading }) {
         />
         <label className="text-sm text-primary">Pulse animation</label>
       </div>
-      <button
-        disabled={loading}
-        className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? "Saving..." : "Save Experience"}
-      </button>
+      <div className="flex gap-3">
+        {isEditing && (
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="bg-gray-100 text-primary px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          disabled={loading}
+          className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+        >
+          {loading ? "Saving..." : isEditing ? "Update Experience" : "Save Experience"}
+        </button>
+      </div>
     </form>
   );
 }
