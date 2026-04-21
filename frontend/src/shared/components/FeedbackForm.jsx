@@ -185,11 +185,6 @@ export default function FeedbackForm({ isOpen, onClose }) {
               <p className="mt-2 text-xs text-primary/50">
                 Write a clear message. Random text like "hi", "test", or meaningless words will not be accepted.
               </p>
-              <p className="mt-1 text-xs text-primary/40">
-                {RECAPTCHA_SITE_KEY
-                  ? 'This form is protected by Google reCAPTCHA before it reaches the API.'
-                  : 'Add your Google reCAPTCHA site key in the frontend environment before deploying this form.'}
-              </p>
             </div>
 
             <div className="flex gap-3">
