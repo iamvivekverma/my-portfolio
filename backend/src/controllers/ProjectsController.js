@@ -407,30 +407,13 @@ const getImageById = async (req, res) => {
     const { id } = req.params;
     ensureValidProjectId(id);
 
-    const adminAccess = resolveReadAccess(req);
-
-    if (!adminAccess.ok) {
-      return res.status(adminAccess.status).json({
-        success: false,
-        message: adminAccess.message,
-      });
-    }
-
     const project = await ProjectModel.findById(id).select('image pin').lean();
 
     if (!project?.image) {
       return res.status(404).json({ success: false, message: 'Project image not found' });
     }
 
-    if (project.pin && !adminAccess.isAdmin) {
-      const accessResult = verifyProjectAccessToken(getProjectAccessTokenFromRequest(req), id);
-
-      if (!accessResult.ok) {
-        return sendLockedProjectResponse(res);
-      }
-    }
-
-    if (project.pin && !adminAccess.isAdmin && !isProtectedImageSource(project.image)) {
+    if (project.pin && !isProtectedImageSource(project.image)) {
       return res.status(404).json({ success: false, message: 'Project image not available' });
     }
 

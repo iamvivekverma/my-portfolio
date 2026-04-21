@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const {
   getData,
+  getImageById,
   invalidatePublicProjectsCache,
 } = require('./ProjectsController');
 const { ProjectModel } = require('../models/ProjectsModel');
@@ -27,9 +28,11 @@ function createResponse() {
 }
 
 const originalFind = ProjectModel.find;
+const originalFindById = ProjectModel.findById;
 
 test.afterEach(() => {
   ProjectModel.find = originalFind;
+  ProjectModel.findById = originalFindById;
   invalidatePublicProjectsCache();
 });
 
@@ -114,4 +117,44 @@ test('getData strips protected fields from the public project list', async () =>
       },
     ],
   });
+});
+
+test('getImageById serves uploaded locked project previews without unlock access', async () => {
+  ProjectModel.findById = () => ({
+    select() {
+      return {
+        lean: async () => ({
+          image: 'data:image/png;base64,aGVsbG8=',
+          pin: '1234',
+        }),
+      };
+    },
+  });
+
+  const res = {
+    statusCode: 200,
+    headers: {},
+    payload: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    setHeader(name, value) {
+      this.headers[name] = value;
+    },
+    json(payload) {
+      this.payload = payload;
+      return this;
+    },
+    send(payload) {
+      this.payload = payload;
+      return this;
+    },
+  };
+
+  await getImageById({ params: { id: '507f1f77bcf86cd799439011' } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['Content-Type'], 'image/png');
+  assert.equal(res.payload.toString('utf8'), 'hello');
 });

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { useProjects } from '../../../hooks/usePortfolioData';
@@ -16,6 +17,7 @@ function SkeletonCard() {
 
 export default function ProjectCard() {
   const { data: rawProjects, loading } = useProjects();
+  const [failedImages, setFailedImages] = useState(() => new Set());
   const projects = rawProjects.map((item) => ({
     _id: item._id,
     title: item.title,
@@ -25,7 +27,7 @@ export default function ProjectCard() {
     githubLink: item.githubLink,
     liveLink: item.liveLink,
     isLocked: Boolean(item.isLocked),
-    image: !item.isLocked && item._id ? buildApiUrl(`/projects/${item._id}/image`) : null,
+    image: item._id && !failedImages.has(item._id) ? buildApiUrl(`/projects/${item._id}/image`) : null,
   }));
 
   const badgeStyle = {
@@ -48,7 +50,20 @@ export default function ProjectCard() {
                 {/* Image placeholder */}
                 <div className="relative rounded-xl overflow-hidden bg-primary/10 h-[300px] flex items-center justify-center flex-shrink-0">
                   {project.image
-                    ? <img src={project.image} alt={project.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    ? <img
+                        src={project.image}
+                        alt={project.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                        onError={() =>
+                          setFailedImages((current) => {
+                            const next = new Set(current);
+                            next.add(project._id);
+                            return next;
+                          })
+                        }
+                      />
                     : <div className="flex flex-col items-center gap-2 text-primary/30">
                         <FaExternalLinkAlt className="text-3xl" />
                         <span className="text-xs font-medium">Project Preview</span>
