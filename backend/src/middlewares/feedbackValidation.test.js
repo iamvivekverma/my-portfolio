@@ -38,9 +38,6 @@ test('feedback validation sanitizes HTML from name and content', async () => {
     name: '<b>Vivek</b>',
     content: 'This portfolio <script>alert(1)</script> feels polished and informative.',
     captchaToken: 'token-value-that-is-long-enough-for-tests',
-    metadata: {
-      clientId: 'client-1',
-    },
   });
 
   assert.equal(res.statusCode, 200);

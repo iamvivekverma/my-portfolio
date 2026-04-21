@@ -18,37 +18,12 @@ const feedbackSchema = new Schema(
       maxlength: 1000,
       trim: true,
     },
-    contentNormalized: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
-    },
     ip: {
       type: String,
       required: true,
     },
     userAgent: {
       type: String,
-    },
-    origin: {
-      type: String,
-    },
-    referrer: {
-      type: String,
-    },
-    fingerprintHash: {
-      type: String,
-      index: true,
-    },
-    clientMeta: {
-      pageUrl: String,
-      referrer: String,
-      timezone: String,
-      language: String,
-      platform: String,
-      screen: String,
-      clientId: String,
     },
     captcha: {
       score: Number,

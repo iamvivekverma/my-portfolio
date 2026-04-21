@@ -1,4 +1,4 @@
-const { getClientIp } = require('../lib/feedbackSecurity');
+const { getClientIp } = require('../lib/inputSecurity');
 const { verifyRecaptchaToken } = require('../lib/recaptcha');
 
 async function verifyFeedbackCaptcha(req, res, next) {

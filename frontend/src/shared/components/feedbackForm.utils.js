@@ -1,4 +1,3 @@
-export const FEEDBACK_CLIENT_ID_KEY = 'portfolio_feedback_client_id';
 const RECAPTCHA_SCRIPT_ID = 'feedback-recaptcha-script';
 const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
 const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
@@ -30,20 +29,6 @@ function normalizeForSubmit(value) {
   });
 }
 
-export function getFeedbackClientId(storage = window.localStorage, cryptoRef = window.crypto) {
-  const existingId = storage.getItem(FEEDBACK_CLIENT_ID_KEY);
-
-  if (existingId) {
-    return existingId;
-  }
-
-  const nextId =
-    cryptoRef?.randomUUID?.() || `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-
-  storage.setItem(FEEDBACK_CLIENT_ID_KEY, nextId);
-  return nextId;
-}
-
 export function sanitizeFeedbackNameInput(name) {
   return stripHtml(name)
     .replace(/[^\p{L}\p{M}\s.'-]/gu, '')
@@ -57,7 +42,6 @@ export function sanitizeFeedbackMessageInput(content) {
 export function validateFeedback(name, content) {
   const trimmedName = normalizeForSubmit(sanitizeFeedbackNameInput(name));
   const trimmedContent = normalizeForSubmit(sanitizeFeedbackMessageInput(content));
-  const normalized = trimmedContent.toLowerCase().replace(/\s+/g, ' ');
   const wordCount = trimmedContent.split(/\s+/).filter(Boolean).length;
   const letterChars = (trimmedContent.match(/\p{L}/gu) || []).length;
 
@@ -77,18 +61,6 @@ export function validateFeedback(name, content) {
     return 'Please type a proper message with a little more detail so I can understand your feedback.';
   }
 
-  if (/^(hi|hello|hey|test|testing|ok|nice|good|cool|hmm+|lol|yo)$/i.test(normalized)) {
-    return 'Please type a proper message with a little more detail so I can understand your feedback.';
-  }
-
-  if (/^(asdf|qwer|zxcv|1234|0000|abc|demo|dummy)+$/i.test(normalized) || /(.)\1{6,}/.test(trimmedContent)) {
-    return 'Please do not send random or meaningless text. Write a clear message instead.';
-  }
-
-  if (/https?:\/\/|www\./i.test(trimmedContent)) {
-    return 'Please avoid links here and send a simple feedback message instead.';
-  }
-
   return '';
 }
 
@@ -100,16 +72,8 @@ export function getFriendlyFeedbackErrorMessage(error) {
     return 'Too many attempts right now. Please wait a little and try again.';
   }
 
-  if (status === 409) {
-    return 'This feedback looks like it was already sent recently.';
-  }
-
   if (status === 403 || /captcha/i.test(rawMessage)) {
     return "I couldn't verify the submission just now. Please try once more.";
-  }
-
-  if (status === 422) {
-    return 'Please send a normal feedback message without links or promotional text.';
   }
 
   if (status === 400) {
@@ -119,13 +83,11 @@ export function getFriendlyFeedbackErrorMessage(error) {
   return 'Failed to submit feedback. Please try again.';
 }
 
-export function buildFeedbackPayload({ name, content, honeypot, metadata, captchaToken }) {
+export function buildFeedbackPayload({ name, content, captchaToken }) {
   return {
     name: normalizeForSubmit(sanitizeFeedbackNameInput(name)),
     content: normalizeForSubmit(sanitizeFeedbackMessageInput(content)),
-    honeypot,
     captchaToken,
-    metadata,
   };
 }
 

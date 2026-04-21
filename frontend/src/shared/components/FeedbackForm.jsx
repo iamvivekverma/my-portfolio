@@ -5,7 +5,6 @@ import {
   buildFeedbackPayload,
   getFriendlyFeedbackErrorMessage,
   getFeedbackCaptchaToken,
-  getFeedbackClientId,
   loadRecaptchaScript,
   setRecaptchaBadgeVisibility,
   sanitizeFeedbackMessageInput,
@@ -15,28 +14,17 @@ import {
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
-function createFeedbackRequest({ name, content, honeypot, captchaToken }) {
+function createFeedbackRequest({ name, content, captchaToken }) {
   return buildFeedbackPayload({
     name,
     content,
-    honeypot,
     captchaToken,
-    metadata: {
-      pageUrl: window.location.href,
-      referrer: document.referrer,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-      language: navigator.language || '',
-      platform: navigator.userAgentData?.platform || navigator.platform || '',
-      screen: `${window.screen.width}x${window.screen.height}`,
-      clientId: getFeedbackClientId(),
-    },
   });
 }
 
 export default function FeedbackForm({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
-  const [honeypot, setHoneypot] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -63,11 +51,6 @@ export default function FeedbackForm({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (honeypot) {
-      setErrorMessage('Something went wrong while sending your feedback. Please try again.');
-      return;
-    }
-
     const validationMessage = validateFeedback(name, content);
 
     if (validationMessage) {
@@ -85,7 +68,6 @@ export default function FeedbackForm({ isOpen, onClose }) {
         createFeedbackRequest({
           name,
           content,
-          honeypot,
           captchaToken,
         })
       );
@@ -136,17 +118,6 @@ export default function FeedbackForm({ isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="website"
-              value={honeypot}
-              onChange={(e) => setHoneypot(e.target.value)}
-              tabIndex={-1}
-              autoComplete="off"
-              style={{ position: 'absolute', left: '-5000px' }}
-              aria-hidden="true"
-            />
-
             {errorMessage && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}

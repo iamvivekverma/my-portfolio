@@ -236,8 +236,8 @@ function FeedbackOverview({ items, onRefresh, loading }) {
       <div className="rounded-2xl border border-primary/10 bg-white p-5">
         <h3 className="text-lg font-semibold text-primary mb-2">Protection summary</h3>
         <p className="text-sm text-primary/70 leading-6">
-          Feedback now captures sender name, IP, browser metadata, page source, and submission time.
-          Duplicate, random, link-heavy, and spammy submissions are rejected automatically.
+          Feedback keeps the essentials only: sender name, message, IP, and submission time.
+          Requests are protected with validation, rate limiting, and reCAPTCHA.
         </p>
         <button
           type="button"

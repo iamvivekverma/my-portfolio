@@ -1,10 +1,5 @@
 const { body, matchedData, validationResult } = require('express-validator');
-const {
-  isPlainObject,
-  sanitizePlainText,
-  sanitizeMetadataValue,
-  hasSafeNameCharacters,
-} = require('../lib/inputSecurity');
+const { sanitizePlainText, hasSafeNameCharacters } = require('../lib/inputSecurity');
 
 function isStringField(value) {
   return typeof value === 'string';
@@ -34,12 +29,6 @@ const feedbackValidationRules = [
     .customSanitizer((value) => sanitizePlainText(value, { maxLength: 1000 }))
     .isLength({ min: 15, max: 1000 })
     .withMessage('Please write a more detailed message.'),
-  body('honeypot')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid form payload.')
-    .bail()
-    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 120 })),
   body('captchaToken')
     .exists({ values: 'falsy' })
     .withMessage('Please complete the CAPTCHA challenge.')
@@ -50,52 +39,6 @@ const feedbackValidationRules = [
     .customSanitizer((value) => sanitizePlainText(value, { maxLength: 5000 }))
     .isLength({ min: 20, max: 5000 })
     .withMessage('Invalid CAPTCHA token.'),
-  body('metadata')
-    .optional()
-    .custom((value) => isPlainObject(value))
-    .withMessage('Invalid metadata payload.'),
-  body('metadata.pageUrl')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid page URL.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 500)),
-  body('metadata.referrer')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid referrer.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 500)),
-  body('metadata.timezone')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid timezone.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 120)),
-  body('metadata.language')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid language.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 80)),
-  body('metadata.platform')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid platform.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 120)),
-  body('metadata.screen')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid screen size.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 80)),
-  body('metadata.clientId')
-    .optional({ values: 'falsy' })
-    .custom(isStringField)
-    .withMessage('Invalid client ID.')
-    .bail()
-    .customSanitizer((value) => sanitizeMetadataValue(value, 120)),
 ];
 
 function handleFeedbackValidation(req, res, next) {

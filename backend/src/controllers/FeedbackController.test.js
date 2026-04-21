@@ -37,18 +37,13 @@ function createRequest(body = {}) {
   };
 }
 
-const originalFindOne = FeedbackModel.findOne;
 const originalSave = FeedbackModel.prototype.save;
 
 test.afterEach(() => {
-  FeedbackModel.findOne = originalFindOne;
   FeedbackModel.prototype.save = originalSave;
 });
 
 test('storeData accepts Hindi feedback when checks pass', async () => {
-  FeedbackModel.findOne = () => ({
-    lean: async () => null,
-  });
   FeedbackModel.prototype.save = async function save() {
     return this;
   };
@@ -56,9 +51,6 @@ test('storeData accepts Hindi feedback when checks pass', async () => {
   const req = createRequest({
     name: 'Vivek',
     content: 'यह पोर्टफोलियो काफी अच्छा है और इसका अनुभव बहुत स्मूद लग रहा है।',
-    metadata: {
-      clientId: 'client-1',
-    },
   });
   const res = createResponse();
 
@@ -68,42 +60,23 @@ test('storeData accepts Hindi feedback when checks pass', async () => {
   assert.equal(res.body.success, true);
 });
 
-test('storeData blocks duplicate feedback content from the same fingerprint', async () => {
-  FeedbackModel.findOne = () => ({
-    lean: async () => ({ _id: 'duplicate-feedback' }),
-  });
-
+test('storeData saves simple feedback without extra fingerprint metadata', async () => {
+  let savedDoc = null;
+  FeedbackModel.prototype.save = async function save() {
+    savedDoc = this.toObject();
+    return this;
+  };
   const req = createRequest({
     name: 'Vivek',
     content: 'This portfolio feels polished and easy to understand for visitors.',
-    metadata: {
-      clientId: 'client-3',
-    },
   });
   const res = createResponse();
 
   await storeData(req, res);
 
-  assert.equal(res.statusCode, 409);
-  assert.equal(res.body.success, false);
-});
-
-test('storeData rejects spammy feedback after sanitization and moderation', async () => {
-  FeedbackModel.findOne = () => ({
-    lean: async () => null,
-  });
-
-  const req = createRequest({
-    name: 'Vivek',
-    content: 'Buy now at https://spam.example and win free money today!',
-    metadata: {
-      clientId: 'client-4',
-    },
-  });
-  const res = createResponse();
-
-  await storeData(req, res);
-
-  assert.equal(res.statusCode, 422);
-  assert.equal(res.body.success, false);
+  assert.equal(res.statusCode, 201);
+  assert.equal(savedDoc.senderName, 'Vivek');
+  assert.equal(savedDoc.content, 'This portfolio feels polished and easy to understand for visitors.');
+  assert.equal(savedDoc.ip, '127.0.0.1');
+  assert.equal(savedDoc.userAgent, 'test-agent');
 });
