@@ -163,11 +163,8 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 maxLength={1000}
                 autoComplete="off"
               />
-              <p className="mt-2 text-xs text-primary/50">
-                Share your thoughts, suggestions, or anything that could make the experience better.
-              </p>
-              <p className="mt-2 text-xs leading-5 text-primary/45">
-                A quick security check runs when you send this form. Google&apos;s{' '}
+              <p className="mt-2 text-xs text-primary/40">
+                This site is protected by reCAPTCHA and the Google{' '}
                 <a
                   href="https://policies.google.com/privacy"
                   target="_blank"
