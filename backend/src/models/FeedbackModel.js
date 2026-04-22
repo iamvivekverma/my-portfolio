@@ -8,7 +8,7 @@ const feedbackSchema = new Schema(
       type: String,
       required: true,
       minlength: 2,
-      maxlength: 80,
+      maxlength: 50,
       trim: true,
     },
     senderEmail: {
@@ -22,7 +22,7 @@ const feedbackSchema = new Schema(
       type: String,
       required: true,
       minlength: 5,
-      maxlength: 1000,
+      maxlength: 500,
       trim: true,
     },
     ip: {

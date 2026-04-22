@@ -36,7 +36,13 @@ const projectSchema = new Schema({
   pin: {
     type: String,
     default: null,
-    match: [/^\d{4}$/, 'Project PIN must be exactly 4 digits.'],
+    trim: true,
+    maxlength: 255,
+  },
+  pinFingerprint: {
+    type: String,
+    default: null,
+    trim: true,
   },
   image: {
     type: String,

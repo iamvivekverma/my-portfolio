@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const { messages } = require('../constants/messages');
 const { createHttpError } = require('../lib/httpError');
+const {
+  createProjectPinFingerprint,
+  hashProjectPin,
+  isHashedProjectPin,
+  verifyProjectPinValue,
+} = require('../lib/projectPinSecurity');
 const { ProjectModel } = require('../models/ProjectsModel');
 const {
   createProjectAccessToken,
@@ -109,7 +115,7 @@ function normalizeTechnologies(value) {
   );
 }
 
-function normalizePin(value) {
+function normalizeProjectPin(value) {
   if (value == null || value === '') {
     return null;
   }
@@ -182,6 +188,7 @@ function normalizeProjectInput(payload, { existingProject = null, partial = fals
         githubLink: existingProject.githubLink || null,
         badge: existingProject.badge || null,
         pin: existingProject.pin || null,
+        pinFingerprint: existingProject.pinFingerprint || null,
         image: existingProject.image || null,
         order: typeof existingProject.order === 'number' ? existingProject.order : 0,
       }
@@ -194,6 +201,7 @@ function normalizeProjectInput(payload, { existingProject = null, partial = fals
         githubLink: null,
         badge: null,
         pin: null,
+        pinFingerprint: null,
         image: null,
         order: 0,
       };
@@ -229,7 +237,9 @@ function normalizeProjectInput(payload, { existingProject = null, partial = fals
   }
 
   if (!partial || Object.hasOwn(payload, 'pin')) {
-    next.pin = normalizePin(payload.pin);
+    const normalizedPin = normalizeProjectPin(payload.pin);
+    next.pin = normalizedPin ? hashProjectPin(normalizedPin) : null;
+    next.pinFingerprint = normalizedPin ? createProjectPinFingerprint(normalizedPin) : null;
   }
 
   if (!partial || Object.hasOwn(payload, 'image')) {
@@ -296,13 +306,42 @@ function invalidatePublicProjectsCache() {
   };
 }
 
+async function ensureUniqueProjectPin(pin, ignoreProjectId = null) {
+  if (!pin) {
+    return;
+  }
+
+  const projects = await ProjectModel.find(
+    ignoreProjectId
+      ? { _id: { $ne: ignoreProjectId }, pin: { $ne: null } }
+      : { pin: { $ne: null } },
+  )
+    .select('_id pin pinFingerprint')
+    .lean();
+
+  const nextFingerprint = createProjectPinFingerprint(pin);
+
+  const alreadyUsed = projects.some((project) => {
+    if (project.pinFingerprint && project.pinFingerprint === nextFingerprint) {
+      return true;
+    }
+
+    return verifyProjectPinValue(pin, project.pin);
+  });
+
+  if (alreadyUsed) {
+    throw createHttpError(400, 'Project PIN must be unique.');
+  }
+}
+
 function normalizeProjectDetail(project, { isAdmin = false } = {}) {
   const { pin, ...rest } = project;
 
   if (isAdmin) {
     return {
       ...rest,
-      pin: pin || null,
+      pin: null,
+      hasPin: Boolean(pin),
       isLocked: Boolean(pin),
     };
   }
@@ -478,6 +517,8 @@ const getDataById = async (req, res) => {
 
 const createData = async (req, res) => {
   try {
+    const pin = normalizeProjectPin(req.body?.pin);
+    await ensureUniqueProjectPin(pin);
     const payload = normalizeProjectInput(req.body);
     const project = await ProjectModel.create(payload);
     invalidatePublicProjectsCache();
@@ -500,6 +541,11 @@ const updateData = async (req, res) => {
 
     if (!existingProject) {
       return res.status(404).json({ success: false, message: messages.not_found.msg });
+    }
+
+    if (Object.hasOwn(req.body, 'pin')) {
+      const pin = normalizeProjectPin(req.body?.pin);
+      await ensureUniqueProjectPin(pin, id);
     }
 
     const payload = normalizeProjectInput(req.body, {
@@ -541,7 +587,7 @@ const deleteData = async (req, res) => {
   }
 };
 
-const verifyPin = async (req, res) => {
+const verifyProjectPin = async (req, res) => {
   try {
     const { id } = req.params;
     ensureValidProjectId(id);
@@ -556,14 +602,26 @@ const verifyPin = async (req, res) => {
       return res.json({ success: true, unlocked: true });
     }
 
-    const pin = normalizePin(req.body?.pin);
+    const pin = normalizeProjectPin(req.body?.pin ?? req.body?.accessCode);
 
-    if (project.pin !== pin) {
+    if (!verifyProjectPinValue(pin, project.pin)) {
       return res.status(401).json({
         success: false,
         unlocked: false,
         message: 'Incorrect PIN',
       });
+    }
+
+    if (!isHashedProjectPin(project.pin) || !project.pinFingerprint) {
+      await ProjectModel.updateOne(
+        { _id: id },
+        {
+          $set: {
+            pin: hashProjectPin(pin),
+            pinFingerprint: createProjectPinFingerprint(pin),
+          },
+        },
+      );
     }
 
     const accessToken = createProjectAccessToken(id);
@@ -623,5 +681,5 @@ module.exports = {
   invalidatePublicProjectsCache,
   reorderProjects,
   updateData,
-  verifyPin,
+  verifyProjectPin,
 };

@@ -16,12 +16,13 @@ import {
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
-function createFeedbackRequest({ name, email, content, captchaToken }) {
+function createFeedbackRequest({ name, email, content, captchaToken, website }) {
   return buildFeedbackPayload({
     name,
     email,
     content,
     captchaToken,
+    website,
   });
 }
 
@@ -29,6 +30,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [content, setContent] = useState('');
+  const [website, setWebsite] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -115,6 +117,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
           email,
           content,
           captchaToken,
+          website,
         })
       );
 
@@ -122,6 +125,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
       setName('');
       setEmail('');
       setContent('');
+      setWebsite('');
       setSubmitted(true);
       clearCloseTimer();
       closeTimerRef.current = window.setTimeout(() => {
@@ -172,6 +176,18 @@ export default function FeedbackForm({ isOpen, onClose }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+              <label htmlFor="feedback-website">Leave this field empty</label>
+              <input
+                id="feedback-website"
+                type="text"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             {errorMessage && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}
@@ -193,7 +209,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 }}
                 placeholder="Enter your name"
                 className="w-full rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                maxLength={80}
+                maxLength={50}
                 autoComplete="name"
                 inputMode="text"
               />
@@ -235,7 +251,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 rows={4}
                 placeholder="Write your message..."
                 className="w-full resize-none rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                maxLength={1000}
+                maxLength={500}
                 autoComplete="off"
               />
             </div>

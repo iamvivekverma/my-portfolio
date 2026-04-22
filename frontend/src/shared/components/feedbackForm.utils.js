@@ -3,6 +3,9 @@ const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
 const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
 const IS_DEV = Boolean(import.meta?.env?.DEV);
 const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
+const FEEDBACK_NAME_MAX_LENGTH = 50;
+const FEEDBACK_CONTENT_MAX_LENGTH = 500;
+const FEEDBACK_HONEYPOT_MAX_LENGTH = 200;
 const SCRIPT_TAG_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,7 +46,7 @@ function normalizeForSubmit(value) {
 export function sanitizeFeedbackNameInput(name) {
   return stripHtml(name)
     .replace(/[^\p{L}\p{M}\s.'-]/gu, '')
-    .slice(0, 80);
+    .slice(0, FEEDBACK_NAME_MAX_LENGTH);
 }
 
 export function sanitizeFeedbackEmailInput(email) {
@@ -53,7 +56,11 @@ export function sanitizeFeedbackEmailInput(email) {
 }
 
 export function sanitizeFeedbackMessageInput(content) {
-  return stripHtml(content).slice(0, 1000);
+  return stripHtml(content).slice(0, FEEDBACK_CONTENT_MAX_LENGTH);
+}
+
+export function sanitizeFeedbackHoneypotInput(content) {
+  return stripHtml(content).slice(0, FEEDBACK_HONEYPOT_MAX_LENGTH);
 }
 
 function normalizeFeedbackEmail(email) {
@@ -73,6 +80,10 @@ export function validateFeedback(name, email, content) {
     return 'Please enter a proper name.';
   }
 
+  if (trimmedName.length > FEEDBACK_NAME_MAX_LENGTH) {
+    return 'Please keep your name under 50 characters.';
+  }
+
   if (!trimmedEmail) {
     return 'Please enter your email address.';
   }
@@ -87,6 +98,10 @@ export function validateFeedback(name, email, content) {
 
   if (trimmedContent.length < 5) {
     return 'Please write a more detailed message (at least 5 characters).';
+  }
+
+  if (trimmedContent.length > FEEDBACK_CONTENT_MAX_LENGTH) {
+    return 'Please keep your message under 500 characters.';
   }
 
   return '';
@@ -111,12 +126,13 @@ export function getFriendlyFeedbackErrorMessage(error) {
   return 'Failed to submit feedback. Please try again.';
 }
 
-export function buildFeedbackPayload({ name, email, content, captchaToken }) {
+export function buildFeedbackPayload({ name, email, content, captchaToken, website = '' }) {
   return {
     name: normalizeForSubmit(sanitizeFeedbackNameInput(name)),
     email: normalizeFeedbackEmail(email),
     content: normalizeForSubmit(sanitizeFeedbackMessageInput(content)),
     captchaToken,
+    website: normalizeForSubmit(sanitizeFeedbackHoneypotInput(website)),
   };
 }
 

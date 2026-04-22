@@ -10,6 +10,8 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: TRUST_PROXY
+        value: 1
       - key: MONGODB_URI
         sync: false
       - key: DB_NAME
@@ -29,9 +31,11 @@ services:
       - key: CHATBOT_DAILY_LIMIT
         value: 80
       - key: FEEDBACK_RATE_WINDOW_MS
-        value: 900000
+        value: 600000
       - key: FEEDBACK_RATE_MAX_REQUESTS
-        value: 5
+        value: 20
+      - key: FEEDBACK_BODY_LIMIT
+        value: 10kb
       - key: RECAPTCHA_SECRET_KEY
         sync: false
       - key: RECAPTCHA_MIN_SCORE

@@ -1,5 +1,17 @@
 const { body, matchedData, validationResult } = require('express-validator');
-const { sanitizePlainText, hasSafeNameCharacters } = require('../lib/inputSecurity');
+const {
+  sanitizePlainText,
+  sanitizeRichTextToPlainText,
+  hasSafeNameCharacters,
+} = require('../lib/inputSecurity');
+
+const FEEDBACK_NAME_MIN_LENGTH = 2;
+const FEEDBACK_NAME_MAX_LENGTH = 50;
+const FEEDBACK_CONTENT_MIN_LENGTH = 5;
+const FEEDBACK_CONTENT_MAX_LENGTH = 500;
+const FEEDBACK_NAME_SANITIZE_LIMIT = 200;
+const FEEDBACK_EMAIL_SANITIZE_LIMIT = 320;
+const FEEDBACK_CONTENT_SANITIZE_LIMIT = 2000;
 
 function isStringField(value) {
   return typeof value === 'string';
@@ -13,8 +25,8 @@ const feedbackValidationRules = [
     .custom(isStringField)
     .withMessage('Name must be plain text.')
     .bail()
-    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 80 }))
-    .isLength({ min: 2, max: 80 })
+    .customSanitizer((value) => sanitizeRichTextToPlainText(value, { maxLength: FEEDBACK_NAME_SANITIZE_LIMIT }))
+    .isLength({ min: FEEDBACK_NAME_MIN_LENGTH, max: FEEDBACK_NAME_MAX_LENGTH })
     .withMessage('Please enter your full name.')
     .bail()
     .custom(hasSafeNameCharacters)
@@ -26,7 +38,7 @@ const feedbackValidationRules = [
     .custom(isStringField)
     .withMessage('Email must be plain text.')
     .bail()
-    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 160 }).toLowerCase())
+    .customSanitizer((value) => sanitizeRichTextToPlainText(value, { maxLength: FEEDBACK_EMAIL_SANITIZE_LIMIT }).toLowerCase())
     .isEmail()
     .withMessage('Please enter a valid email address.'),
   body('content')
@@ -36,8 +48,10 @@ const feedbackValidationRules = [
     .custom(isStringField)
     .withMessage('Message must be plain text.')
     .bail()
-    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 1000 }))
-    .isLength({ min: 5, max: 1000 })
+    .customSanitizer((value) =>
+      sanitizeRichTextToPlainText(value, { maxLength: FEEDBACK_CONTENT_SANITIZE_LIMIT }),
+    )
+    .isLength({ min: FEEDBACK_CONTENT_MIN_LENGTH, max: FEEDBACK_CONTENT_MAX_LENGTH })
     .withMessage('Please write a more detailed message.'),
   body('captchaToken')
     .exists({ values: 'falsy' })
@@ -74,6 +88,10 @@ function handleFeedbackValidation(req, res, next) {
 }
 
 module.exports = {
+  FEEDBACK_CONTENT_MAX_LENGTH,
+  FEEDBACK_CONTENT_MIN_LENGTH,
+  FEEDBACK_NAME_MAX_LENGTH,
+  FEEDBACK_NAME_MIN_LENGTH,
   feedbackValidationRules,
   handleFeedbackValidation,
 };

@@ -6,6 +6,10 @@ const {
   feedbackValidationRules,
   handleFeedbackValidation,
 } = require('../middlewares/feedbackValidation');
+const {
+  rejectDangerousFeedbackPayload,
+  rejectFeedbackHoneypot,
+} = require('../middlewares/feedbackSecurity');
 const { verifyFeedbackCaptcha } = require('../middlewares/verifyFeedbackCaptcha');
 
 const FeedbackRouter = express.Router();
@@ -13,6 +17,8 @@ const FeedbackRouter = express.Router();
 FeedbackRouter.post(
   '/',
   feedbackRateLimit,
+  rejectDangerousFeedbackPayload,
+  rejectFeedbackHoneypot,
   feedbackValidationRules,
   handleFeedbackValidation,
   verifyFeedbackCaptcha,

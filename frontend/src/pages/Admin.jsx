@@ -119,6 +119,8 @@ function createEmptyProjectForm() {
     githubLink: "",
     badge: "",
     pin: "",
+    hasExistingPin: false,
+    removeExistingPin: false,
     image: "",
   };
 }
@@ -136,7 +138,9 @@ function createProjectFormState(initial) {
     liveLink: initial.liveLink || "",
     githubLink: initial.githubLink || "",
     badge: initial.badge || "",
-    pin: initial.pin || "",
+    pin: "",
+    hasExistingPin: Boolean(initial.hasPin || initial.isLocked),
+    removeExistingPin: false,
     image: initial.image || "",
   };
 }
@@ -994,6 +998,8 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
     e.preventDefault();
     setSubmitError("");
 
+    const trimmedPin = form.pin.trim();
+
     const data = {
       title: form.title.trim(),
       description: form.description.trim(),
@@ -1005,12 +1011,24 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
       liveLink: form.liveLink.trim() || null,
       githubLink: form.githubLink.trim() || null,
       badge: form.badge.trim() || null,
-      pin: form.pin.trim() || null,
     };
 
     if (!data.title || !data.description) {
       setSubmitError("Title and description are required.");
       return;
+    }
+
+    if (trimmedPin && !/^\d{4}$/.test(trimmedPin)) {
+      setSubmitError("Project PIN must be exactly 4 digits.");
+      return;
+    }
+
+    if (!isEditing) {
+      data.pin = trimmedPin || null;
+    } else if (trimmedPin) {
+      data.pin = trimmedPin;
+    } else if (form.hasExistingPin && form.removeExistingPin) {
+      data.pin = null;
     }
 
     if (hasNewImage && form.image && form.image.startsWith("data:")) {
@@ -1061,13 +1079,44 @@ function ProjectForm({ onCreate, onUpdate, initial, isEditing, onCancelEdit, loa
       <Input label="Badge (e.g., Open source, NDA - Confidential)" value={form.badge} onChange={(value) => setForm({ ...form, badge: value })} />
       <Input label="Live URL" value={form.liveLink} onChange={(value) => setForm({ ...form, liveLink: value })} />
       <Input label="GitHub URL" value={form.githubLink} onChange={(value) => setForm({ ...form, githubLink: value })} />
+      {isEditing && form.hasExistingPin && !form.removeExistingPin && (
+        <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-primary/70">
+          This project already has a PIN. Leave the field empty to keep it, or enter a new 4-digit PIN to rotate it.
+        </div>
+      )}
+      {isEditing && form.hasExistingPin && form.removeExistingPin && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          This project will become public when you save unless you enter a new PIN.
+        </div>
+      )}
       <Input
-        label="Project PIN (4 digits, leave empty for no PIN required)"
+        label="Project PIN (4 digits, leave empty for public access)"
         type="password"
         maxLength={4}
         value={form.pin}
-        onChange={(value) => setForm({ ...form, pin: value.replace(/[^0-9]/g, "") })}
+        onChange={(value) =>
+          setForm({
+            ...form,
+            pin: value.replace(/[^0-9]/g, ""),
+            removeExistingPin: false,
+          })
+        }
       />
+      {isEditing && form.hasExistingPin && (
+        <button
+          type="button"
+          onClick={() =>
+            setForm((current) => ({
+              ...current,
+              pin: "",
+              removeExistingPin: !current.removeExistingPin,
+            }))
+          }
+          className="text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/70"
+        >
+          {form.removeExistingPin ? "Keep existing PIN" : "Remove PIN lock"}
+        </button>
+      )}
       <div>
         <label className="block text-sm font-medium text-primary mb-2">Project Image</label>
         <input

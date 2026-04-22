@@ -5,9 +5,29 @@ const helmet = require('helmet');
 const { apiRouter } = require('./routes');
 
 const app = express();
+const DEFAULT_BODY_LIMIT = process.env.DEFAULT_BODY_LIMIT || '6mb';
+const FEEDBACK_BODY_LIMIT = process.env.FEEDBACK_BODY_LIMIT || '10kb';
+
+function getTrustProxySetting() {
+  if (process.env.TRUST_PROXY === 'true') {
+    return true;
+  }
+
+  if (process.env.TRUST_PROXY === 'false') {
+    return false;
+  }
+
+  const numericTrustProxy = Number(process.env.TRUST_PROXY);
+
+  if (Number.isInteger(numericTrustProxy) && numericTrustProxy >= 0) {
+    return numericTrustProxy;
+  }
+
+  return 1;
+}
 
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
+app.set('trust proxy', getTrustProxySetting());
 
 function isProduction() {
   return process.env.NODE_ENV === 'production';
@@ -39,6 +59,8 @@ app.use(
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-admin-secret', 'x-project-access-token'],
   }),
 );
 
@@ -50,6 +72,7 @@ app.use(
         frameAncestors: ["'none'"],
         baseUri: ["'none'"],
         formAction: ["'none'"],
+        objectSrc: ["'none'"],
       },
     },
     crossOriginResourcePolicy: false,
@@ -59,13 +82,18 @@ app.use(
   }),
 );
 
+app.use(
+  '/api/feedback',
+  express.json({ limit: FEEDBACK_BODY_LIMIT }),
+  express.urlencoded({ extended: true, limit: FEEDBACK_BODY_LIMIT }),
+);
 app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 });
 
-app.use(express.json({ limit: '6mb' }));
-app.use(express.urlencoded({ extended: true, limit: '6mb' }));
+app.use(express.json({ limit: DEFAULT_BODY_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: DEFAULT_BODY_LIMIT }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use('/api', apiRouter);
@@ -74,7 +102,9 @@ app.use((error, req, res, next) => {
   if (error?.type === 'entity.too.large') {
     return res.status(413).json({
       success: false,
-      message: 'Upload too large. Please use a smaller image.',
+      message: req.originalUrl?.startsWith('/api/feedback')
+        ? 'Feedback payload too large.'
+        : 'Request payload too large.',
     });
   }
 
