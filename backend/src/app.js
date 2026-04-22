@@ -60,7 +60,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'x-admin-secret', 'x-project-access-token'],
+    allowedHeaders: ['Content-Type', 'x-admin-secret', 'x-admin-token', 'x-project-access-token'],
   }),
 );
 
