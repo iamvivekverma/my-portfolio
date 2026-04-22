@@ -7,6 +7,7 @@ const { apiRouter } = require('./routes');
 const app = express();
 const DEFAULT_BODY_LIMIT = process.env.DEFAULT_BODY_LIMIT || '6mb';
 const FEEDBACK_BODY_LIMIT = process.env.FEEDBACK_BODY_LIMIT || '10kb';
+const CHATBOT_BODY_LIMIT = process.env.CHATBOT_BODY_LIMIT || '20kb';
 
 function getTrustProxySetting() {
   if (process.env.TRUST_PROXY === 'true') {
@@ -86,6 +87,11 @@ app.use(
   '/api/feedback',
   express.json({ limit: FEEDBACK_BODY_LIMIT }),
   express.urlencoded({ extended: true, limit: FEEDBACK_BODY_LIMIT }),
+);
+app.use(
+  '/api/chatbot',
+  express.json({ limit: CHATBOT_BODY_LIMIT }),
+  express.urlencoded({ extended: true, limit: CHATBOT_BODY_LIMIT }),
 );
 app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');

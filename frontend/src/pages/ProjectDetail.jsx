@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaGithub, FaExternalLinkAlt, FaArrowLeft } from 'react-icons/fa';
 import ProjectUnlockGate from '../features/projects/components/ProjectUnlockGate';
 import { useProject } from '../hooks/usePortfolioData';
+import { toSafeUrl } from '../shared/utils/urlSafety';
 
 const ACCESS_TOKEN_STORAGE_PREFIX = 'project_access_token';
 
@@ -137,6 +138,8 @@ function ProjectDetailContent({ projectId }) {
     'Case-study': 'bg-violet-100 text-violet-700',
     'Open source': 'bg-emerald-100 text-emerald-700',
   };
+  const safeGithubLink = toSafeUrl(project.githubLink, { fallback: '#', allowRelative: true });
+  const safeLiveLink = toSafeUrl(project.liveLink, { fallback: '#', allowRelative: true });
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] py-8 px-5">
@@ -208,9 +211,9 @@ function ProjectDetailContent({ projectId }) {
         </div>
 
         <div className="flex flex-wrap gap-4">
-          {project.githubLink && project.githubLink !== '#' && (
+          {safeGithubLink !== '#' && (
             <a
-              href={project.githubLink}
+              href={safeGithubLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-6 py-3 rounded-lg border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 font-medium"
@@ -219,9 +222,9 @@ function ProjectDetailContent({ projectId }) {
               View Code
             </a>
           )}
-          {project.liveLink && project.liveLink !== '#' && (
+          {safeLiveLink !== '#' && (
             <a
-              href={project.liveLink}
+              href={safeLiveLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white hover:bg-primary/85 transition-all duration-200 font-medium"

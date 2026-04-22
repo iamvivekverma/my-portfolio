@@ -10,6 +10,7 @@ const {
   reorderProjects,
 } = require('../controllers/ProjectsController');
 const { adminAuth } = require('../middlewares/adminAuth');
+const { projectPinRateLimit } = require('../middlewares/projectPinRateLimit');
 
 const ProjectsRouter = express.Router();
 
@@ -19,8 +20,8 @@ ProjectsRouter.get('/:id', getDataById);
 ProjectsRouter.post('/', adminAuth, createData);
 ProjectsRouter.put('/:id', adminAuth, updateData);
 ProjectsRouter.delete('/:id', adminAuth, deleteData);
-ProjectsRouter.post('/:id/verify-access-code', verifyProjectPin);
-ProjectsRouter.post('/:id/verify-pin', verifyProjectPin);
+ProjectsRouter.post('/:id/verify-access-code', projectPinRateLimit, verifyProjectPin);
+ProjectsRouter.post('/:id/verify-pin', projectPinRateLimit, verifyProjectPin);
 ProjectsRouter.post('/reorder', adminAuth, reorderProjects);
 
 module.exports = { ProjectsRouter };

@@ -20,6 +20,12 @@ services:
         sync: false
       - key: ADMIN_SECRET
         sync: false
+      - key: PROJECT_ACCESS_SECRET
+        sync: false
+      - key: ADMIN_LOGIN_RATE_WINDOW_MS
+        value: 900000
+      - key: ADMIN_LOGIN_MAX_ATTEMPTS
+        value: 8
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
@@ -30,12 +36,24 @@ services:
         value: 8
       - key: CHATBOT_DAILY_LIMIT
         value: 80
+      - key: CHATBOT_BODY_LIMIT
+        value: 20kb
+      - key: CHATBOT_MAX_MESSAGE_CHARS
+        value: 500
+      - key: CHATBOT_MAX_HISTORY_ITEMS
+        value: 12
+      - key: CHATBOT_MAX_HISTORY_CHARS
+        value: 500
       - key: FEEDBACK_RATE_WINDOW_MS
         value: 600000
       - key: FEEDBACK_RATE_MAX_REQUESTS
         value: 20
       - key: FEEDBACK_BODY_LIMIT
         value: 10kb
+      - key: PROJECT_PIN_RATE_WINDOW_MS
+        value: 600000
+      - key: PROJECT_PIN_MAX_ATTEMPTS
+        value: 10
       - key: RECAPTCHA_SECRET_KEY
         sync: false
       - key: RECAPTCHA_MIN_SCORE

@@ -3,6 +3,7 @@ import { motion as Motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { portfolioApi } from '../../../services/api';
 import { useAbout } from '../../../hooks/usePortfolioData';
+import { toSafeEmailText, toSafeMailtoHref, toSafeUrl } from '../../../shared/utils/urlSafety';
 
 function getUnlockErrorMessage(error) {
   if (error?.status === 401) {
@@ -25,6 +26,9 @@ export default function ProjectUnlockGate({ projectId, onUnlock }) {
   const inputRefs = useRef([]);
 
   const { data: about } = useAbout();
+  const fallbackEmail = 'iamvivek.verma@icloud.com';
+  const safeEmail = toSafeEmailText(about?.email, fallbackEmail);
+  const safeEmailHref = toSafeMailtoHref(about?.email, fallbackEmail);
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -46,10 +50,10 @@ export default function ProjectUnlockGate({ projectId, onUnlock }) {
 
   const socialLinks = about?.socials
     ? [
-        { icon: FaLinkedin, href: about.socials.linkedin || 'https://www.linkedin.com/', label: 'LinkedIn' },
-        { icon: FaGithub, href: about.socials.github || 'https://github.com/', label: 'GitHub' },
-        { icon: FaInstagram, href: about.socials.instagram || 'https://instagram.com/', label: 'Instagram' },
-        { icon: FaYoutube, href: about.socials.youtube || 'https://www.youtube.com/', label: 'YouTube' },
+        { icon: FaLinkedin, href: toSafeUrl(about.socials.linkedin, { fallback: 'https://www.linkedin.com/' }), label: 'LinkedIn' },
+        { icon: FaGithub, href: toSafeUrl(about.socials.github, { fallback: 'https://github.com/' }), label: 'GitHub' },
+        { icon: FaInstagram, href: toSafeUrl(about.socials.instagram, { fallback: 'https://instagram.com/' }), label: 'Instagram' },
+        { icon: FaYoutube, href: toSafeUrl(about.socials.youtube, { fallback: 'https://www.youtube.com/' }), label: 'YouTube' },
       ]
     : [
         { icon: FaLinkedin, href: 'https://www.linkedin.com/', label: 'LinkedIn' },
@@ -201,10 +205,10 @@ export default function ProjectUnlockGate({ projectId, onUnlock }) {
 
         <div className="flex flex-col items-center gap-2 mb-4 md:mb-5">
           <a
-            href={`mailto:${about?.email || 'iamvivek.verma@icloud.com'}`}
+            href={safeEmailHref}
             className="text-primary/60 text-base md:text-base hover:text-primary transition"
           >
-            {about?.email || 'iamvivek.verma@icloud.com'}
+            {safeEmail}
           </a>
         </div>
 

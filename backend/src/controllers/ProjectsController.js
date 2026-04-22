@@ -27,10 +27,7 @@ function ensureValidProjectId(id) {
 }
 
 function getProjectAccessTokenFromRequest(req) {
-  const headerToken = req.headers['x-project-access-token'];
-  const queryToken = typeof req.query?.accessToken === 'string' ? req.query.accessToken : '';
-
-  return headerToken || queryToken || '';
+  return req.headers['x-project-access-token'] || '';
 }
 
 function normalizeRequiredString(value, fieldName, maxLength = 500) {

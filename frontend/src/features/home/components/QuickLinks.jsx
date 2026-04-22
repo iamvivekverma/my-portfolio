@@ -1,13 +1,14 @@
 import React from 'react';
 import { useAbout } from '../../../hooks/usePortfolioData';
+import { toSafeUrl } from '../../../shared/utils/urlSafety';
 
 export default function QuickLinks() {
   const { data: about } = useAbout();
 
   const quickLinks = [
     { label: "Resume", href: "/resume.html", download: true },
-    { label: "GitHub", href: about?.socials?.github || "https://github.com/" },
-    { label: "LinkedIn", href: about?.socials?.linkedin || "https://www.linkedin.com/" },
+    { label: "GitHub", href: toSafeUrl(about?.socials?.github, { fallback: "https://github.com/" }) },
+    { label: "LinkedIn", href: toSafeUrl(about?.socials?.linkedin, { fallback: "https://www.linkedin.com/" }) },
   ];
 
   return (
@@ -39,4 +40,3 @@ export default function QuickLinks() {
         </div>
   )
 }
-

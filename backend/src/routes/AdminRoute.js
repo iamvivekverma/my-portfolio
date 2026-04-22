@@ -1,9 +1,10 @@
 const express = require('express');
 const { createAdminToken, validateAdminSecret } = require('../middlewares/adminAuth');
+const { adminLoginRateLimit } = require('../middlewares/adminLoginRateLimit');
 
 const AdminRouter = express.Router();
 
-AdminRouter.post('/verify', (req, res) => {
+AdminRouter.post('/verify', adminLoginRateLimit, (req, res) => {
   const result = validateAdminSecret(req.headers['x-admin-secret']);
 
   if (!result.ok) {

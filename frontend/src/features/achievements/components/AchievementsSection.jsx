@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { useAchievements } from "../../../hooks/usePortfolioData";
+import { toSafeUrl } from "../../../shared/utils/urlSafety";
 
 
 const SCROLL_STYLES = `
@@ -24,7 +25,9 @@ const CertCard = memo(({ cert, index }) => {
 
   // Pre-generate WhatsApp link to keep render method clean
   const msg = `Hey Vivek, I'd like to verify your certificate: ${cert.title} from ${cert.issuer}.`;
-  const shareLink = cert.verifyUrl || `https://wa.me/917209640726?text=${encodeURIComponent(msg)}`;
+  const shareLink = toSafeUrl(cert.verifyUrl, {
+    fallback: `https://wa.me/917209640726?text=${encodeURIComponent(msg)}`,
+  });
 
   return (
     <div 

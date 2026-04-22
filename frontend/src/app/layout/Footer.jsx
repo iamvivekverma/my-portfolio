@@ -2,18 +2,22 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaLinkedin, FaGithub, FaInstagram, FaYoutube, FaComment } from "react-icons/fa";
 import FeedbackForm from "../../shared/components/FeedbackForm";
+import { toSafeEmailText, toSafeMailtoHref, toSafeUrl } from "../../shared/utils/urlSafety";
 import { useAbout } from "../../hooks/usePortfolioData";
 
 export default function Footer() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const { data: about } = useAbout();
+  const fallbackEmail = 'iamvivek.verma@icloud.com';
+  const safeEmail = toSafeEmailText(about?.email, fallbackEmail);
+  const safeEmailHref = toSafeMailtoHref(about?.email, fallbackEmail);
 
   const socialLinks = about?.socials
     ? [
-        { icon: FaLinkedin,  href: about.socials.linkedin || "https://www.linkedin.com/",  label: "LinkedIn" },
-        { icon: FaGithub,    href: about.socials.github || "https://github.com/",       label: "GitHub" },
-        { icon: FaInstagram, href: about.socials.instagram || "https://instagram.com/",    label: "Instagram" },
-        { icon: FaYoutube,   href: about.socials.youtube || "https://www.youtube.com/",  label: "YouTube" },
+        { icon: FaLinkedin,  href: toSafeUrl(about.socials.linkedin, { fallback: "https://www.linkedin.com/" }),  label: "LinkedIn" },
+        { icon: FaGithub,    href: toSafeUrl(about.socials.github, { fallback: "https://github.com/" }),       label: "GitHub" },
+        { icon: FaInstagram, href: toSafeUrl(about.socials.instagram, { fallback: "https://instagram.com/" }),    label: "Instagram" },
+        { icon: FaYoutube,   href: toSafeUrl(about.socials.youtube, { fallback: "https://www.youtube.com/" }),  label: "YouTube" },
       ]
     : [
         { icon: FaLinkedin,  href: "https://www.linkedin.com/", label: "LinkedIn" },
@@ -36,8 +40,8 @@ export default function Footer() {
 
         <div className="flex flex-col items-center gap-3 w-full">
           <p className="text-primary text-sm font-semibold uppercase tracking-wider">Contact me</p>
-          <a href="mailto:iamvivek.verma@icloud.com" className="text-primary/60 text-sm hover:text-primary transition">
-            iamvivek.verma@icloud.com
+          <a href={safeEmailHref} className="text-primary/60 text-sm hover:text-primary transition">
+            {safeEmail}
           </a>
 
           <nav className="px-5 w-full mt-4">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FaLinkedin, FaGithub, FaInstagram, FaYoutube, FaComment, FaTrophy } from 'react-icons/fa';
 import SectionFooter from '../../../shared/components/SectionFooter';
 import FeedbackForm from '../../../shared/components/FeedbackForm';
+import { toSafeEmailText, toSafeMailtoHref, toSafeUrl } from '../../../shared/utils/urlSafety';
 import AchievementsSection from '../../achievements/components/AchievementsSection';
 import { useAbout } from '../../../hooks/usePortfolioData';
 
@@ -40,14 +41,16 @@ export default function AboutSection() {
     };
   }, [showAchievements]);
 
-  const email = about?.email || 'iamvivek.verma@icloud.com';
+  const fallbackEmail = 'iamvivek.verma@icloud.com';
+  const email = toSafeEmailText(about?.email, fallbackEmail);
+  const emailHref = toSafeMailtoHref(about?.email, fallbackEmail);
   const bio = about?.bio || 'Turning complex user problems into seamless digital products. With a focus on the MERN stack and clean UX, I build applications that scale with your users. I don\'t just write code; I build solutions that matter.';
   const socials = about?.socials
     ? [
-      { icon: FaLinkedin, link: about.socials.linkedin || '#', label: "LinkedIn" },
-      { icon: FaGithub, link: about.socials.github || '#', label: "GitHub" },
-      { icon: FaInstagram, link: about.socials.instagram || '#', label: "Instagram" },
-      { icon: FaYoutube, link: about.socials.youtube || '#', label: "YouTube" },
+      { icon: FaLinkedin, link: toSafeUrl(about.socials.linkedin, { fallback: 'https://www.linkedin.com/' }), label: "LinkedIn" },
+      { icon: FaGithub, link: toSafeUrl(about.socials.github, { fallback: 'https://github.com/' }), label: "GitHub" },
+      { icon: FaInstagram, link: toSafeUrl(about.socials.instagram, { fallback: 'https://instagram.com/' }), label: "Instagram" },
+      { icon: FaYoutube, link: toSafeUrl(about.socials.youtube, { fallback: 'https://www.youtube.com/' }), label: "YouTube" },
     ]
     : [
       { icon: FaLinkedin, link: "https://www.linkedin.com/", label: "LinkedIn" },
@@ -121,7 +124,7 @@ export default function AboutSection() {
           <div className='flex flex-col w-[400px]'>
             <h1 className="text-lg bg-fill font-semibold text-primary/90">Catching ideas is impossible—unless we're a team</h1>
 
-            <a href={`mailto:${email}`} className="mt-3 text-xs text-primary/50 hover:text-primary transition font-medium">
+            <a href={emailHref} className="mt-3 text-xs text-primary/50 hover:text-primary transition font-medium">
               {email}
             </a>
             <div className="mt-5 flex gap-2 items-center flex-wrap">

@@ -32,29 +32,17 @@ function getChatModel() {
 }
 
 async function chatbotHandler(req, res) {
-  const { message, conversationHistory = [] } = req.body;
-  const trimmedMessage = typeof message === 'string' ? message.trim() : '';
-
-  if (!trimmedMessage) {
-    return res.status(400).json({ error: 'Message is required' });
-  }
+  const trimmedMessage = req.validatedChatbot?.message || '';
+  const conversationHistory = Array.isArray(req.validatedChatbot?.conversationHistory)
+    ? req.validatedChatbot.conversationHistory
+    : [];
 
   try {
     const model = getChatModel();
-    const history = Array.isArray(conversationHistory)
-      ? conversationHistory
-          .filter(
-            (msg) =>
-              msg &&
-              typeof msg.content === 'string' &&
-              (msg.role === 'assistant' || msg.role === 'user'),
-          )
-          .slice(1)
-          .map((msg) => ({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }],
-          }))
-      : [];
+    const history = conversationHistory.map((msg) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
 
     const chat = model.startChat({
       history,
