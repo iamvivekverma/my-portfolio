@@ -44,6 +44,11 @@ async function chatbotHandler(req, res) {
       parts: [{ text: msg.content }],
     }));
 
+    // Gemini chat history must start with a user message.
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
+
     const chat = model.startChat({
       history,
       systemInstruction: {
@@ -57,7 +62,14 @@ async function chatbotHandler(req, res) {
     res.json({ response });
   } catch (err) {
     console.error('Gemini API error:', err.message);
-    res.status(500).json({ error: 'Failed to get response from AI' });
+
+    if (err.message?.includes('503 Service Unavailable') || err.message?.includes('high demand')) {
+      return res.status(503).json({
+        error: 'AI service is temporarily overloaded. Please try again in a moment.',
+      });
+    }
+
+    return res.status(500).json({ error: 'Failed to get response from AI' });
   }
 }
 

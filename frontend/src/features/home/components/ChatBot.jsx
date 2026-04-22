@@ -38,6 +38,10 @@ function getFriendlyErrorMessage(error) {
     return "The AI service had an issue responding. Please try again.";
   }
 
+  if (error.message.includes("temporarily overloaded")) {
+    return "The AI service is busy right now. Please try again in a moment.";
+  }
+
   return "Oops! Something went wrong. Please try again.";
 }
 
