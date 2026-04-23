@@ -85,9 +85,17 @@ const sections = [
 
 async function readResponseBody(response) {
   const text = await response.text();
+  const contentType = response.headers.get("content-type") || "";
 
   if (!text) {
     return null;
+  }
+
+  if (contentType.includes("text/html") || /^\s*<!doctype html/i.test(text)) {
+    return {
+      message: "API misconfigured: received HTML instead of JSON. Check VITE_API_BASE_URL or the /api dev proxy.",
+      isHtmlFallback: true,
+    };
   }
 
   try {
@@ -431,6 +439,10 @@ export default function Admin() {
         return { ok: false, message: "Session expired. Please log in again." };
       }
 
+      if (json?.isHtmlFallback) {
+        return { ok: false, message: json.message };
+      }
+
       if (!res.ok) {
         return { ok: false, message: json?.message || `Failed to load ${resource}.` };
       }
@@ -471,6 +483,10 @@ export default function Admin() {
     if (res.status === 401) {
       resetSession("Session expired. Please log in again.");
       throw new Error(body?.message || "Session expired. Please log in again.");
+    }
+
+    if (body?.isHtmlFallback) {
+      throw new Error(body.message);
     }
 
     return { res, body };

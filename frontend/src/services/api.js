@@ -1,4 +1,46 @@
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').trim().replace(/\/+$/, '');
+function trimTrailingSlashes(value) {
+  return value.replace(/\/+$/, '');
+}
+
+function isLocalHostname(hostname) {
+  return ['localhost', '127.0.0.1', '::1'].includes(hostname);
+}
+
+function resolveApiBase() {
+  const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim();
+
+  if (!configuredBase) {
+    return '/api';
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const resolvedUrl = new URL(configuredBase, window.location.origin);
+
+      // Prevent production builds from accidentally calling localhost.
+      if (!isLocalHostname(window.location.hostname) && isLocalHostname(resolvedUrl.hostname)) {
+        console.warn(
+          'Ignoring localhost VITE_API_BASE_URL outside local development. Falling back to /api.',
+        );
+        return '/api';
+      }
+    } catch {
+      // Let fetch surface invalid URL errors later.
+    }
+  }
+
+  return trimTrailingSlashes(configuredBase);
+}
+
+function isHtmlResponse(text, contentType) {
+  if ((contentType || '').includes('text/html')) {
+    return true;
+  }
+
+  return typeof text === 'string' && /^\s*<!doctype html/i.test(text);
+}
+
+export const API_BASE = trimTrailingSlashes(resolveApiBase());
 
 export function buildApiUrl(path) {
   return `${API_BASE}/${path.replace(/^\/+/, '')}`;
@@ -16,8 +58,18 @@ async function request(endpoint, options = {}) {
   const response = await fetch(buildApiUrl(endpoint), options);
   const text = await response.text();
   let payload = null;
+  const contentType = response.headers.get('content-type') || '';
 
   if (text) {
+    if (isHtmlResponse(text, contentType)) {
+      const error = new Error(
+        'API misconfigured: received HTML instead of JSON. Check VITE_API_BASE_URL or the /api dev proxy.',
+      );
+      error.status = response.status || 500;
+      error.data = { message: text.slice(0, 200) };
+      throw error;
+    }
+
     try {
       payload = JSON.parse(text);
     } catch {
