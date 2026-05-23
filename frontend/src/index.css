@@ -84,7 +84,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
-  background-color: #efe5da;
+  background-color: var(--color-bg);
   font-family: var(--font-sans);
   font-size: 1rem;
   line-height: 1.65;
