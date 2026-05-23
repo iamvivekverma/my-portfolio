@@ -92,11 +92,11 @@ const projects = [
   {
     name: 'Floatrec',
     meta: 'macOS & Windows',
-    role: 'Founder & Developer | Camera Overlay App for Screen Recording',
+    role: 'Founder & Developer | Native Camera Overlay App for Screen Recording',
     bullets: [
-      'Built Floatrec as a lightweight facecam overlay app for lecturers, educators, YouTubers, and content creators.',
-      'Developed a floating always-on-top camera window with drag, resize, round/square modes, flip controls, and clean live preview.',
-      'Created a modern React and Tailwind download website with platform-specific downloads, support links, FAQ, and terms modal.',
+      'Built a native macOS facecam overlay using SwiftUI and AVFoundation with an always-on-top transparent camera window.',
+      'Added drag/resize, locked 1:1 aspect ratio, circle/square modes, adjustable corner radius, horizontal/vertical flip, and Space shortcut start/stop.',
+      'Implemented fullscreen annotation tools with cursor, pen, eraser, native color picker, pen-width slider, smooth Bezier strokes, undo, clear all, and thread-safe camera session handling.',
     ],
   },
 ];
