@@ -31,7 +31,9 @@ export function toSafeUrl(value, { fallback = '#', allowRelative = false } = {})
     if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
       return parsed.toString();
     }
-  } catch {}
+  } catch {
+    return fallback;
+  }
 
   return fallback;
 }

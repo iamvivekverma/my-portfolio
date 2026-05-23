@@ -59,6 +59,8 @@ const projectSchema = new Schema({
   },
 });
 
+projectSchema.index({ order: 1, createdAt: 1 });
+
 const ProjectModel = mongoose.model('Project', projectSchema);
 
 module.exports = {ProjectModel}

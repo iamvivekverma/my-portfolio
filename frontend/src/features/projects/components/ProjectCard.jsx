@@ -41,7 +41,7 @@ export default function ProjectCard() {
       <div className="flex flex-col sm:flex-row gap-5 overflow-x-auto px-4 pb-2 pt-1 scrollbar-hide">
         {loading
           ? [1,2,3].map(i => <SkeletonCard key={i} />)
-          : projects.map((project) => (
+          : projects.map((project, index) => (
             <div
                 key={project._id}
                 className="w-full sm:w-[320px] lg:w-[350px] bg-[var(--color-accent)] rounded-2xl p-4 flex flex-col gap-4 flex-shrink-0
@@ -53,8 +53,9 @@ export default function ProjectCard() {
                     ? <img
                         src={project.image}
                         alt={project.title}
-                        loading="lazy"
+                        loading={index === 0 ? 'eager' : 'lazy'}
                         decoding="async"
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
                         className="w-full h-full object-cover"
                         onError={() =>
                           setFailedImages((current) => {

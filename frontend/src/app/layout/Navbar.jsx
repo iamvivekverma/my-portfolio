@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { FaBars, FaBriefcase, FaGraduationCap, FaCode, FaUser } from "react-icons/fa";
 import { GiCrossedBones } from "react-icons/gi";
 import { useState, useEffect } from "react";
+import { warmProjectsRoute } from "../preloadRoutes";
 
 export default function Navbar() {
   const location = useLocation();
@@ -26,6 +27,12 @@ export default function Navbar() {
     "/about":      "Who I am",
   };
 
+  const handleNavIntent = (path) => {
+    if (path === "/projects") {
+      warmProjectsRoute();
+    }
+  };
+
   return (
     <nav className="sticky top-0 left-0 right-0 py-5 lg:border-none border-b z-50 md:bg-none bg-bg">
       <div className="max-w-8xl mx-auto h-full flex items-center justify-between px-5">
@@ -41,7 +48,12 @@ export default function Navbar() {
         <div className="hidden lg:flex items-center text-[18px]">
           {navItems.map((item, index) => (
             <div key={item.path} className="flex items-center">
-              <Link to={item.path}>
+              <Link
+                to={item.path}
+                onFocus={() => handleNavIntent(item.path)}
+                onMouseEnter={() => handleNavIntent(item.path)}
+                onTouchStart={() => handleNavIntent(item.path)}
+              >
                 <span className={`px-10 font-medium transition-all duration-200 ${
                   location.pathname === item.path
                     ? "text-primary bg-primary/10 scale-105"
@@ -90,7 +102,13 @@ export default function Navbar() {
                 {navItems.map((item, index) => {
                   const Icon = item.icon;
                   return (
-                    <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setOpen(false)}
+                      onFocus={() => handleNavIntent(item.path)}
+                      onMouseEnter={() => handleNavIntent(item.path)}
+                      onTouchStart={() => handleNavIntent(item.path)}
                       className={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-500 hover:scale-105 block ${
                         location.pathname === item.path
                           ? "bg-white text-primary border-white shadow-xl"

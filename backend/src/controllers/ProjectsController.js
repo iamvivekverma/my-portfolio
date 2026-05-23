@@ -416,9 +416,14 @@ const getData = async (req, res) => {
       }
     }
 
-    const projects = await ProjectModel.find()
-      .sort({ order: 1, createdAt: 1 })
-      .lean();
+    const projectsQuery = ProjectModel.find()
+      .sort({ order: 1, createdAt: 1 });
+
+    if (!adminAccess.isAdmin) {
+      projectsQuery.select('_id title description technologies badge order createdAt pin');
+    }
+
+    const projects = await projectsQuery.lean();
 
     const data = adminAccess.isAdmin ? projects.map((project) => normalizeProjectDetail(project, { isAdmin: true })) : projects.map(normalizeProjectListItem);
 
