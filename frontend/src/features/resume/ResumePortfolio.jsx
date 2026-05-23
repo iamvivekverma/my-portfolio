@@ -96,7 +96,7 @@ const projects = [
     bullets: [
       'Built a native macOS facecam overlay using SwiftUI and AVFoundation with an always-on-top transparent camera window.',
       'Added drag/resize, locked 1:1 aspect ratio, circle/square modes, adjustable corner radius, horizontal/vertical flip, and Space shortcut start/stop.',
-      'Implemented fullscreen annotation tools with cursor, pen, eraser, native color picker, pen-width slider, smooth Bezier strokes, undo, clear all, and thread-safe camera session handling.',
+      'Implemented a polished fullscreen annotation layer with a native-feeling floating toolbox, cursor/pen/eraser tools, color picker, pen-width control, smooth Bezier strokes, undo, clear all, and thread-safe camera session handling.',
     ],
   },
 ];
