@@ -1,159 +1,50 @@
 import React from "react";
 
-const contactLinks = [
-  { label: "+91 72096 40726" },
-  { label: "iamvivek.verma@icloud.com", href: "mailto:iamvivek.verma@icloud.com" },
-  { label: "whovivekverma.vercel.app", href: "https://whovivekverma.vercel.app" },
-  { label: "linkedin.com/in/whovivekverma", href: "https://linkedin.com/in/whovivekverma" },
-  { label: "github.com/iamvivekverma", href: "https://github.com/iamvivekverma" },
-];
-
-const experience = [
-  {
-    title: "Enterprise Portfolio Architecture & Headless CMS Engine",
-    meta: "Production · Open Source",
-    role: "Lead Systems Architect (React, Next.js, Node.js, Express, MongoDB, Framer Motion, DnD Kit)",
-    dates: "2025 - Present",
-    bullets: [
-      "Designed and engineered a proprietary full-stack headless CMS from scratch, establishing central data ingestion for 7+ relational domains, successfully eliminating reliance on restrictive third-party content platforms.",
-      "Hardened application security parameters by architecting a cryptographically sound dual-token security architecture (x-admin-secret / x-admin-token) combined with a zero-knowledge PIN verification matrix, successfully ensuring total isolation of proprietary client files and core infrastructure.",
-      "Maximized runtime performance metrics, slashing Time-to-First-Byte (TTFB) by 40% and optimizing Lighthouse performance configurations to 98% via dynamic code-splitting, targeted tree-shaking, and multi-tier memory-caching layers.",
-    ],
-  },
-  {
-    title: "Savrig - Digital Product & SaaS Solutions Studio",
-    meta: "Jaipur, India",
-    role: "Founding Engineer & Technical Director (SaaS Architecture, Next.js, Cloud Infrastructure)",
-    dates: "2026 - Present",
-    bullets: [
-      "Launched a technical engineering studio focused on delivering cloud-native applications, stateful SaaS tooling, and complex automation workflows for cross-industry SMB clients.",
-      "Developed scalable Next.js consumer applications integrating optimized webhook listeners, server-side data synchronization engines, and granular SEO structures, expanding organic customer acquisition funnels for clients.",
-      "Engineered a high-leverage development infrastructure utilizing automated generative AI compilation workflows, decreasing the standard Software Development Lifecycle (SDLC) by 35% while keeping quality control metrics immaculate.",
-    ],
-  },
-  {
-    title: "MediQ - Deep-Learning Intelligence & Healthcare Platform",
-    meta: "Open Source",
-    role: "Principal Engineer (Next.js, Node.js, MongoDB, OpenAI API Engine, WebSocket Protocols)",
-    dates: "2026",
-    bullets: [
-      "Architected a production-grade AI-native healthcare ingestion system parsing complex symptoms and rare epidemiological disease vectors; leveraged fine-tuned LLM execution maps and guardrails to ensure clinically sound responses.",
-      "Constructed a granular, 3-tier Role-Based Access Control (RBAC) safety mechanism protecting patient-doctor communications via asymmetric JWT encryption layers and server-side route guards.",
-      "Engineered a real-time event pipeline using persistent WebSocket connections, reducing messaging delivery latency by 65% and successfully liquidating heavy database polling bottlenecks.",
-    ],
-  },
-  {
-    title: "Floatrec - Native Cross-Platform Screen Capture System",
-    meta: "macOS · Windows",
-    role: "Core Systems Engineer (Electron Core, Desktop Engine API, Native OS Bindings)",
-    dates: "2026",
-    bullets: [
-      "Designed and built a hardware-accelerated desktop video overlay engine utilizing low-level Electron bindings, featuring absolute spatial memory window pinning, dynamic cross-axis transformation, and multi-threaded key-hook bindings.",
-      "Developed a low-latency 2D canvas vector canvas layer supporting multi-color Bezier rendering, real-time bitmap manipulation, and continuous mutation stacks for instant frame annotations.",
-    ],
-  },
-];
-
-const expertise = [
-  ["System Architectures", "React (Vite), Next.js (App Router), Node.js, Express, Electron, RESTful API Design"],
-  ["State & Graphics", "Redux Toolkit, Context API, TailwindCSS, Framer Motion, DnD Kit, HTML5 Canvas API"],
-  ["Data Infrastructure", "MongoDB, Mongoose (Aggregation Pipelines, Indexing Optimization), Redis Caching Layers"],
-  ["Security & Networking", "Asymmetric JWT, Dual-Token Systems, RBAC Systems, WebSockets (WS/WSS), Rate Limiting Engine"],
-  ["AI Integration", "OpenAI / Anthropic API Systems, Vector Processing, Advanced Context Engineering & Guardrails"],
-  ["DevOps & Runtimes", "Git, GitHub Enterprise, Docker Containers, Postman Automation, Vercel Edge Networks"],
-  ["Core Languages", "JavaScript (ES6+), TypeScript, Python, C++, HTML5/CSS3"],
-];
-
-const education = [
-  {
-    degree: "Bachelor of Technology (B.Tech) - Computer Science & Engineering",
-    location: "Jaipur, Rajasthan",
-    institution: "Arya College of Engineering (RTU) · Specialization in Artificial Intelligence & Machine Learning",
-    dates: "2024 - Present",
-  },
-  {
-    degree: "Engineering Diploma - Mechanical Engineering Graduate",
-    location: "Saharsa, Bihar",
-    institution: "Government Polytechnic Institute · Focus on Complex Systems Thinking & Structural Analysis",
-    dates: "2020 - 2023",
-  },
-];
-
-const credentials = [
-  {
-    title: "Advanced MERN Architecture Certification - Grade A+ Distinction",
-    meta: "WsCube Tech · 2026",
-    desc: "Completed multi-month deep-dive into full-stack backend concurrency, database mapping optimization, and high-performance React design patterns. Verified credential ID: WS/2026/WSJP/54249.",
-  },
-  {
-    title: "Live Architecture Challenge: Responsive Magic - 1st Place Winner",
-    meta: "WsCube Tech Base · 2025",
-    desc: "Awarded top ranking out of large field of engineers for building production-grade adaptive layouts under restrictive real-time timelines using strict CSS layout trees and responsive viewport calculations.",
-  },
-  {
-    title: "UI Engineering Competition: Cascading Creativity - 1st Place Winner",
-    meta: "WsCube Career School · 2025",
-    desc: "Recognized for creative excellence and math-heavy animation architectures built purely using clean stylesheets and zero-overhead performance strategies.",
-  },
-  {
-    title: "Advanced Artificial Intelligence Track - Distinction Award",
-    meta: "IIT Patna & SBTE Bihar",
-    desc: "Graduated with top marks from intensive institutional curriculum covering baseline neural layers, optimization algorithms, and modern deep-learning models.",
-  },
-];
-
-const pageStyle = {
-  width: "794px",
-  minHeight: "1123px",
-  margin: "0 auto",
-  background: "#ffffff",
-  padding: "40px 50px 48px",
-  boxShadow: "0 10px 60px rgba(0,0,0,0.22)",
-  fontFamily: "'Source Sans 3', 'Helvetica Neue', Arial, sans-serif",
-  fontSize: "10.2pt",
-  color: "#111111",
-  lineHeight: "1.44",
-  WebkitFontSmoothing: "antialiased",
-};
-
-const sectionTitleStyle = {
-  fontFamily: "'EB Garamond', Georgia, serif",
-  fontSize: "11pt",
-  fontWeight: "700",
-  letterSpacing: "0.18em",
-  textTransform: "uppercase",
-  color: "#0a0a0a",
-  marginBottom: "1px",
-};
-
-const ruleStyle = { border: "none", borderTop: "1px solid #bbbbbb", margin: "4px 0 8px" };
+const RuleThick = () => <hr style={{ border: "none", borderTop: "2px solid #111", margin: "9px 0 0" }} />;
+const RuleThin = () => <hr style={{ border: "none", borderTop: "1px solid #bbb", margin: "4px 0 8px" }} />;
 
 function SectionTitle({ children }) {
   return (
-    <>
-      <div style={sectionTitleStyle}>{children}</div>
-      <hr style={ruleStyle} />
-    </>
-  );
-}
-
-function HeaderRow({ left, right, leftStyle = {}, rightStyle = {} }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px" }}>
-      <span style={leftStyle}>{left}</span>
-      <span style={{ fontSize: "9.2pt", color: "#444444", whiteSpace: "nowrap", flexShrink: 0, ...rightStyle }}>
-        {right}
-      </span>
+    <div
+      style={{
+        fontFamily: "'EB Garamond', Georgia, serif",
+        fontSize: "11pt",
+        fontWeight: 700,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+        color: "#0a0a0a",
+        marginBottom: "1px",
+      }}
+    >
+      {children}
     </div>
   );
 }
 
-function BulletList({ bullets }) {
+function EntryHead({ org, location }) {
   return (
-    <ul style={{ listStyle: "none", padding: "0", marginTop: "3.5px" }}>
-      {bullets.map((bullet) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px" }}>
+      <span style={{ fontWeight: 700, fontSize: "10.5pt", color: "#0a0a0a" }}>{org}</span>
+      <span style={{ fontSize: "9.2pt", color: "#444", whiteSpace: "nowrap", flexShrink: 0 }}>{location}</span>
+    </div>
+  );
+}
+
+function EntryMeta({ role, date }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: "1px", gap: "8px" }}>
+      <span style={{ fontStyle: "italic", fontSize: "9.8pt", color: "#2a2a2a" }}>{role}</span>
+      <span style={{ fontSize: "9.2pt", color: "#444", whiteSpace: "nowrap", flexShrink: 0 }}>{date}</span>
+    </div>
+  );
+}
+
+function Bullets({ items }) {
+  return (
+    <ul style={{ listStyle: "none", padding: 0, marginTop: "3.5px" }}>
+      {items.map((text) => (
         <li
-          key={bullet}
+          key={text}
           style={{
             position: "relative",
             paddingLeft: "13px",
@@ -163,54 +54,192 @@ function BulletList({ bullets }) {
             color: "#151515",
           }}
         >
-          <span style={{ position: "absolute", left: "1px", top: "0", fontSize: "10pt", color: "#111111", lineHeight: "1.46" }}>
+          <span style={{ position: "absolute", left: "1px", top: 0, fontSize: "10pt", color: "#111", lineHeight: "1.46" }}>
             •
           </span>
-          {bullet}
+          <span dangerouslySetInnerHTML={{ __html: text }} />
         </li>
       ))}
     </ul>
   );
 }
 
+function AchievementEntry({ title, meta, desc }) {
+  return (
+    <div style={{ marginBottom: "5px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px" }}>
+        <span style={{ fontWeight: 700, fontSize: "10.2pt" }}>{title}</span>
+        <span style={{ fontSize: "9.2pt", color: "#444", whiteSpace: "nowrap", flexShrink: 0 }}>{meta}</span>
+      </div>
+      {desc && <div style={{ fontSize: "9.8pt", color: "#333", marginTop: "1px" }}>{desc}</div>}
+    </div>
+  );
+}
+
+const contactItems = [
+  { label: "+91 72096 40726" },
+  { label: "iamvivek.verma@icloud.com", href: "mailto:iamvivek.verma@icloud.com" },
+  { label: "Portfolio", href: "https://whovivekverma.vercel.app" },
+  { label: "LinkedIn", href: "https://linkedin.com/in/whovivekverma" },
+  { label: "GitHub", href: "https://github.com/iamvivekverma" },
+  { label: "Jaipur, India" },
+];
+
+const experiences = [
+  {
+    org: "EmberKids Chess Academy – Enterprise Learning Management Platform",
+    location: "Client Project",
+    role: "Lead Full Stack Engineer · Next.js · React · TypeScript · Express.js · MongoDB · Razorpay · JWT · RBAC",
+    date: "2026",
+    bullets: [
+      "Architected a production-grade <b>Learning Management Platform (LMS)</b> serving North American students, engineering the complete lifecycle from trial booking and enrollment to curriculum assignment, class scheduling, and performance tracking.",
+      "Engineered a scalable <b>Role-Based Access Control (RBAC)</b> system with configurable permissions, dual-token JWT authentication, audit logging, and timezone-aware scheduling via modular REST APIs for long-term maintainability.",
+      "Integrated Razorpay payment links and automated invoicing alongside multi-channel <b>notification workflows (Email/WhatsApp)</b>, ensuring highly optimized database schemas and reusable frontend architecture.",
+    ],
+  },
+  {
+    org: "Full-Stack Portfolio CMS & Admin Platform · whovivekverma.vercel.app",
+    location: "Live · Jaipur",
+    role: "Sole Architect & Engineer · React · Vite · TailwindCSS · Framer Motion · Node.js · Express · MongoDB · DnD Kit",
+    date: "2025 - Present",
+    bullets: [
+      "Built a custom headless CMS managing <b>7+ content domains</b> (projects, skills, experience, achievements, profile, feedback, NDA access) - eliminating dependency on third-party CMS tools entirely.",
+      "Engineered a <b>dual-token security layer</b> (x-admin-secret + x-admin-token) with zero-knowledge PIN verification for locked/NDA projects; added captcha, rate-limiting, and server-side input validation.",
+      "Cut perceived load time by <b>~40%</b> via route-level lazy loading, API response caching, and image preload strategies; implemented DnD Kit drag-and-drop reordering and Framer Motion animations for production-grade UX.",
+    ],
+  },
+  {
+    org: "Savrig - Digital Product Studio",
+    location: "Jaipur, India",
+    role: "Independent Full Stack Developer",
+    date: "2026 - Present",
+    bullets: [
+      "Delivering <b>custom web applications, SaaS tools, and business automation solutions</b> for SMB clients - owning product planning, development, deployment, and maintenance end-to-end.",
+      "Built client-facing Next.js applications with SEO optimization, lead-capture flows, and server-side data sync; leveraged modern development workflows to significantly accelerate delivery timelines versus traditional build cycles.",
+      "Established a repeatable delivery framework enabling consistent, high-quality output across multiple concurrent client engagements without additional headcount.",
+    ],
+  },
+  {
+    org: "Floatrec - Cross-Platform Screen Recording Utility",
+    location: "macOS · Windows",
+    role: "Developer · Electron · React · Canvas API",
+    date: "2026",
+    bullets: [
+      "Shipped a cross-platform camera overlay app (always-on-top window, drag/resize, circle/square modes, flip controls, keyboard shortcuts) leveraging AI-assisted engineering to deliver native-grade UX without traditional platform expertise.",
+      "Implemented <b>10+ annotation tools</b> including pen, eraser, color picker, undo/redo stack, and Bezier-based drawing within a fullscreen layer - demonstrating ability to independently ship complex desktop software.",
+    ],
+  },
+  {
+    org: "MernHub - Developer Learning Platform",
+    location: "Open Source",
+    role: "Lead Developer · Next.js · Express.js · MongoDB",
+    date: "2026",
+    bullets: [
+      "Designed a scalable learning platform covering <b>50+ MERN topics, structured project roadmaps</b>, and a modular content architecture engineered for future community-driven contributions.",
+    ],
+  },
+];
+
+const skills = [
+  { label: "Frontend", value: "React, Next.js, Vite, TailwindCSS, Redux Toolkit, Framer Motion, DnD Kit, React Router" },
+  { label: "Backend", value: "Node.js, Express.js, REST API Design, WebSockets, Rate Limiting, Input Validation" },
+  { label: "Database", value: "MongoDB, Mongoose (Schema Design, Indexing, Query Optimization, Aggregation)" },
+  { label: "Cloud & CI/CD", value: "AWS (EC2, S3), GitHub Actions, Vercel, Render, Railway, Docker" },
+  { label: "Security & Auth", value: "JWT, Role-Based Access Control (RBAC), Password Hashing (bcrypt), CAPTCHA Protection" },
+  { label: "Testing & Tools", value: "Jest, Cypress, Postman, Git, Electron, OpenAI API, Prompt Engineering" },
+  { label: "Languages", value: "JavaScript (ES6+), TypeScript, Python, C++" },
+];
+
+const achievements = [
+  {
+    title: "MERN Stack Web Development - Grade A+ (Distinction)",
+    meta: "WsCube Tech, Jaipur · Feb 2026",
+    desc: "Completed 6-month intensive MERN programme. Verifiable at wscubetech.com/verify-certificate (Reg: WS/2026/WSJP/54249).",
+  },
+  {
+    title: "Responsive Magic Event - 1st Place (Winner)",
+    meta: "WsCube Career School, Jaipur · Sep 2025",
+    desc: "Ranked 1st in a live frontend challenge; recognized for responsive design execution and UI quality.",
+  },
+  {
+    title: "Cascading Creativity Event - 1st Place (Winner)",
+    meta: "WsCube Career School, Jaipur · Jun 2025",
+    desc: "Won competitive CSS/design event; recognized for creative implementation and technical precision.",
+  },
+  {
+    title: "Hack Nexus 2.0 - 24-Hour Hackathon",
+    meta: "Arya College of Engineering · Apr 2025",
+    desc: "Built and presented a functional product within a 24-hour constraint at an institutional hackathon.",
+  },
+  {
+    title: "Artificial Intelligence Certification - Grade AB (Distinction)",
+    meta: "IIT Patna & SBTE Bihar · 2023",
+    desc: "Completed Basic & Advanced AI curriculum with Excellence grade - IIT Patna certified programme.",
+  },
+];
+
+const sectionStyle = { marginBottom: "10px" };
+const entryStyle = { marginBottom: "9px" };
+
 export default function ResumePortfolio() {
   return (
-    <div className="resume-premium-shell" style={{ background: "#c8c3bc", padding: "36px 0", minHeight: "100vh" }}>
-      <style>
-        {`
-          @import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@700&family=Source+Sans+3:wght@400;600;700&display=swap");
+    <div
+      className="resume-print-shell"
+      style={{
+        background: "#c8c3bc",
+        padding: "36px 0",
+        minHeight: "100vh",
+        fontFamily: "'Source Sans 3', 'Helvetica Neue', Arial, sans-serif",
+      }}
+    >
+      <style>{`
+        @import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;600;700&display=swap");
 
-          @media (max-width: 840px) {
-            .resume-premium-page {
-              width: min(100% - 24px, 794px) !important;
-              padding: 32px 24px 38px !important;
-            }
+        @page {
+          size: A4;
+          margin: 0;
+        }
 
-            .resume-premium-contact {
-              row-gap: 6px !important;
-            }
-
-            .resume-premium-contact span {
-              border-right: 0 !important;
-              line-height: 1.25 !important;
-            }
-
-            .resume-premium-grid {
-              grid-template-columns: 1fr !important;
-            }
+        @media print {
+          body {
+            margin: 0;
+            background: #fff !important;
           }
-        `}
-      </style>
 
-      <div className="resume-premium-page" style={pageStyle}>
+          .resume-print-shell {
+            padding: 0 !important;
+            background: #fff !important;
+          }
+
+          .resume-sheet {
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
+
+      <div
+        className="resume-sheet"
+        style={{
+          width: "210mm",
+          minHeight: "297mm",
+          margin: "0 auto",
+          background: "#fff",
+          padding: "40px 50px 48px",
+          boxShadow: "0 10px 60px rgba(0,0,0,0.22)",
+          fontSize: "10.2pt",
+          color: "#111",
+          lineHeight: "1.44",
+          WebkitFontSmoothing: "antialiased",
+        }}
+      >
         <header style={{ textAlign: "center", marginBottom: "9px" }}>
           <h1
             style={{
               fontFamily: "'EB Garamond', Georgia, serif",
               fontSize: "28pt",
-              fontWeight: "700",
+              fontWeight: 700,
               letterSpacing: "0.02em",
-              lineHeight: "1",
+              lineHeight: 1,
               color: "#0a0a0a",
             }}
           >
@@ -220,37 +249,41 @@ export default function ResumePortfolio() {
             style={{
               marginTop: "5px",
               fontSize: "9.2pt",
-              fontWeight: "700",
+              fontWeight: 700,
               letterSpacing: "0.24em",
               textTransform: "uppercase",
               color: "#3a3a3a",
             }}
           >
-            Senior Full Stack Engineer &nbsp;·&nbsp; Enterprise Solutions Architect
+            Full Stack Engineer &nbsp;·&nbsp; Modern Web Applications &nbsp;·&nbsp; Scalable SaaS Systems
           </div>
-
           <div
-            className="resume-premium-contact"
+            className="resume-contact"
             style={{
               display: "flex",
               justifyContent: "center",
               flexWrap: "wrap",
               marginTop: "7px",
               fontSize: "9.2pt",
-              color: "#333333",
+              color: "#333",
             }}
           >
-            {contactLinks.map((item, index) => (
+            {contactItems.map((item, index) => (
               <span
                 key={item.label}
                 style={{
                   padding: "0 8px",
-                  borderRight: index === contactLinks.length - 1 ? "none" : "1px solid #999999",
-                  lineHeight: "1",
+                  lineHeight: 1,
+                  borderRight: index < contactItems.length - 1 ? "1px solid #999" : "none",
                 }}
               >
                 {item.href ? (
-                  <a href={item.href} target={item.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" style={{ color: "#111111", textDecoration: "none" }}>
+                  <a
+                    href={item.href}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                    style={{ color: "#111", textDecoration: "none" }}
+                  >
                     {item.label}
                   </a>
                 ) : (
@@ -259,79 +292,67 @@ export default function ResumePortfolio() {
               </span>
             ))}
           </div>
-          <div style={{ fontSize: "9.2pt", color: "#444444", marginTop: "4px" }}>Jaipur, Rajasthan, India</div>
         </header>
 
-        <hr style={{ border: "none", borderTop: "2px solid #111111", margin: "9px 0 0" }} />
-        <hr style={ruleStyle} />
+        <RuleThick />
+        <RuleThin />
 
-        <section style={{ marginBottom: "10px" }}>
+        <section style={sectionStyle}>
           <SectionTitle>Professional Summary</SectionTitle>
+          <RuleThin />
           <p style={{ fontSize: "10pt", color: "#1a1a1a", lineHeight: "1.52", textAlign: "justify" }}>
-            Performance-driven Senior Full Stack Engineer with a definitive track record of architecting, scaling, and deploying secure, production-grade enterprise software systems and AI-native applications. Expert in optimizing the MERN stack and Next.js ecosystems for high-throughput workloads, implementing robust distributed architectures, complex multi-tier authentication matrices, and real-time synchronization systems. Combines rigorous computer science fundamentals with advanced AI-augmented engineering paradigms to slash product development lifecycles by up to 40% while engineering resilient, high-availability web products.
+            Full Stack Engineer specializing in building production-grade SaaS platforms, secure backend systems, and 
+            scalable web applications from concept to deployment. Experienced in architecting complete business workflows, 
+            designing modular APIs, implementing Role-Based Access Control (RBAC), integrating payment gateways, and 
+            delivering end-to-end products. Open to high-impact roles where deep technical ownership, engineering speed, 
+            and product thinking are valued.
           </p>
         </section>
 
-        <section style={{ marginBottom: "10px" }}>
-          <SectionTitle>Technical Experience</SectionTitle>
-          {experience.map((item) => (
-            <div key={item.title} style={{ marginBottom: "9px" }}>
-              <HeaderRow
-                left={item.title}
-                right={item.meta}
-                leftStyle={{ fontWeight: "700", fontSize: "10.5pt", color: "#0a0a0a" }}
-              />
-              <HeaderRow
-                left={item.role}
-                right={item.dates}
-                leftStyle={{ fontStyle: "italic", fontSize: "9.8pt", color: "#2a2a2a" }}
-              />
-              <BulletList bullets={item.bullets} />
+        <section style={sectionStyle}>
+          <SectionTitle>Projects & Experience</SectionTitle>
+          <RuleThin />
+          {experiences.map((experience) => (
+            <div key={experience.org} style={entryStyle}>
+              <EntryHead org={experience.org} location={experience.location} />
+              <EntryMeta role={experience.role} date={experience.date} />
+              <Bullets items={experience.bullets} />
             </div>
           ))}
         </section>
 
-        <section style={{ marginBottom: "10px" }}>
-          <SectionTitle>Core Technical Expertise</SectionTitle>
-          <div className="resume-premium-grid" style={{ display: "grid", gridTemplateColumns: "125px 1fr", rowGap: "3.5px", fontSize: "9.9pt" }}>
-            {expertise.map(([label, value]) => (
-              <React.Fragment key={label}>
-                <span style={{ fontWeight: "700", color: "#0a0a0a" }}>{label}</span>
-                <span style={{ color: "#1a1a1a" }}>{value}</span>
+        <section style={sectionStyle}>
+          <SectionTitle>Technical Skills</SectionTitle>
+          <RuleThin />
+          <div className="resume-grid" style={{ display: "grid", gridTemplateColumns: "112px 1fr", rowGap: "3.5px", fontSize: "9.9pt" }}>
+            {skills.map((skill) => (
+              <React.Fragment key={skill.label}>
+                <span style={{ fontWeight: 700, color: "#0a0a0a" }}>{skill.label}</span>
+                <span style={{ color: "#1a1a1a" }}>{skill.value}</span>
               </React.Fragment>
             ))}
           </div>
         </section>
 
-        <section style={{ marginBottom: "10px" }}>
-          <SectionTitle>Academic Foundations</SectionTitle>
-          {education.map((item) => (
-            <div key={item.degree} style={{ marginBottom: "6px" }}>
-              <HeaderRow
-                left={item.degree}
-                right={item.location}
-                leftStyle={{ fontWeight: "700", fontSize: "10.5pt", color: "#0a0a0a" }}
-              />
-              <HeaderRow
-                left={item.institution}
-                right={item.dates}
-                leftStyle={{ fontStyle: "italic", fontSize: "9.8pt", color: "#2a2a2a" }}
-              />
-            </div>
-          ))}
+        <section style={sectionStyle}>
+          <SectionTitle>Education</SectionTitle>
+          <RuleThin />
+          <div style={{ marginBottom: "6px" }}>
+            <EntryHead org="B.Tech - Computer Science & Engineering (Lateral Entry)" location="Jaipur, India" />
+            <EntryMeta role="Arya College of Engineering · RTU, Rajasthan" date="2024 - Present" />
+          </div>
+          <div>
+            <EntryHead org="Diploma - Mechanical Engineering" location="Saharsa, Bihar" />
+            <EntryMeta role="Government Polytechnic Saharsa · Engineering Fundamentals & Systems Thinking" date="2020 - 2023" />
+            <div style={{ fontSize: "9.8pt", color: "#333", marginTop: "1px" }}>CGPA: 8.2/10</div>
+          </div>
         </section>
 
-        <section style={{ marginBottom: "5px" }}>
-          <SectionTitle>Technical Credentials & Honors</SectionTitle>
-          {credentials.map((item) => (
-            <div key={item.title} style={{ marginBottom: "5px" }}>
-              <HeaderRow
-                left={item.title}
-                right={item.meta}
-                leftStyle={{ fontWeight: "700", fontSize: "10.2pt" }}
-              />
-              <div style={{ fontSize: "9.8pt", color: "#333333", marginTop: "1px" }}>{item.desc}</div>
-            </div>
+        <section style={sectionStyle}>
+          <SectionTitle>Certifications & Achievements</SectionTitle>
+          <RuleThin />
+          {achievements.map((achievement) => (
+            <AchievementEntry key={achievement.title} title={achievement.title} meta={achievement.meta} desc={achievement.desc} />
           ))}
         </section>
       </div>
