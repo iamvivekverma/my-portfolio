@@ -1,4 +1,3 @@
-
 import React from "react";
 
 const RuleThick = () => <hr style={{ border: "none", borderTop: "2px solid #111", margin: "9px 0 0" }} />;
