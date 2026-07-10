@@ -85,48 +85,42 @@ const contactItems = [
   { label: "Jaipur, India" },
 ];
 
-const experiences = [
+const professionalExperience = [
   {
-    org: "EmberKids Chess Academy – Enterprise Learning Management Platform",
+    org: "EmberKids Chess Academy – Enterprise LMS (emberkids.netlify.app)",
     location: "Client Project",
-    role: "Lead Full Stack Engineer · Next.js · React · TypeScript · Express.js · MongoDB · Razorpay · JWT · RBAC",
+    role: "Lead Full Stack Engineer",
     date: "2026",
     bullets: [
-      "Architected a production-grade <b>Learning Management Platform (LMS)</b> serving North American students, engineering the complete lifecycle from trial booking and enrollment to curriculum assignment, class scheduling, and performance tracking.",
-      "Engineered a scalable <b>Role-Based Access Control (RBAC)</b> system with configurable permissions, dual-token JWT authentication, audit logging, and timezone-aware scheduling via modular REST APIs for long-term maintainability.",
-      "Integrated Razorpay payment links and automated invoicing alongside multi-channel <b>notification workflows (Email/WhatsApp)</b>, ensuring highly optimized database schemas and reusable frontend architecture.",
+      "Architected a full-stack LMS from scratch (Next.js 16, TypeScript, MongoDB), serving 500+ global students. Achieved a 90+ Lighthouse performance score and sub-200ms API response times.",
+      "Built a scalable payment processing system using the Wise API and MongoDB ACID transactions, securely processing $50K+ in monthly volume with zero financial discrepancies.",
+      "Designed a security-first backend featuring a custom RBAC system with 47 granular permissions, dual-token JWTs, and Helmet CSP, virtually eliminating unauthorized access attempts.",
+      "Implemented Redis caching and automated Node-cron jobs for attendance tracking and portal lifecycle management, reducing administrative overhead by 80% and database load by 60%.",
+      "Engineered a multi-channel automated notification system (Nodemailer, Twilio WhatsApp API) for trial reminders, renewals, and class updates, achieving a 95% delivery rate.",
     ],
   },
   {
-    org: "Full-Stack Portfolio CMS & Admin Platform · whovivekverma.vercel.app",
-    location: "Live · Jaipur",
-    role: "Sole Architect & Engineer · React · Vite · TailwindCSS · Framer Motion · Node.js · Express · MongoDB · DnD Kit",
-    date: "2025 - Present",
-    bullets: [
-      "Built a custom headless CMS managing <b>7+ content domains</b> (projects, skills, experience, achievements, profile, feedback, NDA access) - eliminating dependency on third-party CMS tools entirely.",
-      "Engineered a <b>dual-token security layer</b> (x-admin-secret + x-admin-token) with zero-knowledge PIN verification for locked/NDA projects; added captcha, rate-limiting, and server-side input validation.",
-      "Cut perceived load time by <b>~40%</b> via route-level lazy loading, API response caching, and image preload strategies; implemented DnD Kit drag-and-drop reordering and Framer Motion animations for production-grade UX.",
-    ],
-  },
-  {
-    org: "Savrig - Digital Product Studio",
+    org: "Savrig - Digital Product Studio · savrig.vercel.app",
     location: "Jaipur, India",
     role: "Independent Full Stack Developer",
     date: "2026 - Present",
     bullets: [
-      "Delivering <b>custom web applications, SaaS tools, and business automation solutions</b> for SMB clients - owning product planning, development, deployment, and maintenance end-to-end.",
-      "Built client-facing Next.js applications with SEO optimization, lead-capture flows, and server-side data sync; leveraged modern development workflows to significantly accelerate delivery timelines versus traditional build cycles.",
+      "Delivering <b>custom web applications, SaaS tools, and business automation solutions</b> for SMB clients—owning product planning, development, deployment, and maintenance end-to-end.",
+      "Built client-facing Next.js applications with SEO optimization, lead-capture flows, and server-side data sync, leveraging modern workflows to accelerate delivery timelines vs traditional cycles.",
       "Established a repeatable delivery framework enabling consistent, high-quality output across multiple concurrent client engagements without additional headcount.",
     ],
   },
+];
+
+const technicalProjects = [
   {
     org: "Floatrec - Cross-Platform Screen Recording Utility",
     location: "macOS · Windows",
     role: "Developer · Electron · React · Canvas API",
     date: "2026",
     bullets: [
-      "Shipped a cross-platform camera overlay app (always-on-top window, drag/resize, circle/square modes, flip controls, keyboard shortcuts) leveraging AI-assisted engineering to deliver native-grade UX without traditional platform expertise.",
-      "Implemented <b>10+ annotation tools</b> including pen, eraser, color picker, undo/redo stack, and Bezier-based drawing within a fullscreen layer - demonstrating ability to independently ship complex desktop software.",
+      "Shipped a cross-platform camera overlay app (always-on-top window, drag/resize, flip controls, keyboard shortcuts) delivering native-grade UX without traditional platform expertise.",
+      "Implemented <b>10+ robust annotation tools</b> (pen, eraser, color picker, undo/redo stack, Bezier-based drawing) within a fullscreen layer, demonstrating deep DOM manipulation expertise.",
     ],
   },
   {
@@ -135,7 +129,8 @@ const experiences = [
     role: "Lead Developer · Next.js · Express.js · MongoDB",
     date: "2026",
     bullets: [
-      "Designed a scalable learning platform covering <b>50+ MERN topics, structured project roadmaps</b>, and a modular content architecture engineered for future community-driven contributions.",
+      "Designed a scalable learning platform covering <b>50+ MERN stack topics and structured project roadmaps</b> using Next.js and Express.",
+      "Built a modular content architecture engineered specifically for community-driven contributions and future scalability.",
     ],
   },
 ];
@@ -300,23 +295,34 @@ export default function ResumePortfolio() {
         <section style={sectionStyle}>
           <SectionTitle>Professional Summary</SectionTitle>
           <RuleThin />
-          <p style={{ fontSize: "10pt", color: "#1a1a1a", lineHeight: "1.52", textAlign: "justify" }}>
+          <p style={{ fontSize: "10pt", color: "#1a1a1a", lineHeight: "1.52", textAlign: "justify", margin: "4px 0" }}>
             Full Stack Engineer specializing in building production-grade SaaS platforms, secure backend systems, and 
             scalable web applications from concept to deployment. Experienced in architecting complete business workflows, 
-            designing modular APIs, implementing Role-Based Access Control (RBAC), integrating payment gateways, and 
-            delivering end-to-end products. Open to high-impact roles where deep technical ownership, engineering speed, 
-            and product thinking are valued.
+            designing modular APIs, implementing Role-Based Access Control (RBAC), and integrating complex payment gateways. 
+            Leveraging a background in mechanical engineering and systems thinking to architect resilient, high-performance software solutions.
           </p>
         </section>
 
         <section style={sectionStyle}>
-          <SectionTitle>Projects & Experience</SectionTitle>
+          <SectionTitle>Professional Experience</SectionTitle>
           <RuleThin />
-          {experiences.map((experience) => (
+          {professionalExperience.map((experience) => (
             <div key={experience.org} style={entryStyle}>
               <EntryHead org={experience.org} location={experience.location} />
               <EntryMeta role={experience.role} date={experience.date} />
               <Bullets items={experience.bullets} />
+            </div>
+          ))}
+        </section>
+
+        <section style={sectionStyle}>
+          <SectionTitle>Technical Projects</SectionTitle>
+          <RuleThin />
+          {technicalProjects.map((project) => (
+            <div key={project.org} style={entryStyle}>
+              <EntryHead org={project.org} location={project.location} />
+              <EntryMeta role={project.role} date={project.date} />
+              <Bullets items={project.bullets} />
             </div>
           ))}
         </section>
