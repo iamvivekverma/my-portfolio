@@ -48,7 +48,7 @@ export default function ProjectCard() {
                            transition-transform duration-300 hover:-translate-y-1"
               >
                 {/* Image placeholder */}
-                <div className="relative rounded-xl overflow-hidden bg-primary/10 h-[300px] flex items-center justify-center flex-shrink-0">
+                <div className="relative rounded-xl overflow-hidden bg-primary/10 h-[300px] lg:h-[260px] xl:h-[300px] flex items-center justify-center flex-shrink-0">
                   {project.image
                     ? <img
                         src={project.image}
