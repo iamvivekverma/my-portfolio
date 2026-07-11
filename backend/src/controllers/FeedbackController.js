@@ -57,11 +57,6 @@ const storeData = async (req, res) => {
       content,
       ip,
       userAgent,
-      captcha: {
-        score: req.recaptcha?.score,
-        action: req.recaptcha?.action,
-        bypassed: req.recaptcha?.bypassed === true,
-      },
     });
 
     await feedback.save();

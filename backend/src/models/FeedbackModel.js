@@ -21,8 +21,8 @@ const feedbackSchema = new Schema(
     content: {
       type: String,
       required: true,
-      minlength: 5,
-      maxlength: 500,
+      minlength: 3,
+      maxlength: 1000,
       trim: true,
     },
     ip: {
@@ -31,14 +31,6 @@ const feedbackSchema = new Schema(
     },
     userAgent: {
       type: String,
-    },
-    captcha: {
-      score: Number,
-      action: String,
-      bypassed: {
-        type: Boolean,
-        default: false,
-      },
     },
     createdAt: {
       type: Date,

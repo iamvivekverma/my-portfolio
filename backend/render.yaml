@@ -54,9 +54,3 @@ services:
         value: 600000
       - key: PROJECT_PIN_MAX_ATTEMPTS
         value: 10
-      - key: RECAPTCHA_SECRET_KEY
-        sync: false
-      - key: RECAPTCHA_MIN_SCORE
-        value: 0.5
-      - key: RECAPTCHA_BYPASS_IN_DEV
-        value: false

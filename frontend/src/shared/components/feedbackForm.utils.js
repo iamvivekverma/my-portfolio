@@ -1,10 +1,5 @@
-const RECAPTCHA_SCRIPT_ID = 'feedback-recaptcha-script';
-const RECAPTCHA_SRC = 'https://www.google.com/recaptcha/api.js?render=';
-const DEV_CAPTCHA_TOKEN = 'development-feedback-captcha-token';
-const IS_DEV = Boolean(import.meta?.env?.DEV);
-const RECAPTCHA_BADGE_SELECTOR = '.grecaptcha-badge';
 const FEEDBACK_NAME_MAX_LENGTH = 50;
-const FEEDBACK_CONTENT_MAX_LENGTH = 500;
+const FEEDBACK_CONTENT_MAX_LENGTH = 1000;
 const FEEDBACK_HONEYPOT_MAX_LENGTH = 200;
 const SCRIPT_TAG_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
 const HTML_TAG_PATTERN = /<\/?[^>]+>/g;
@@ -96,12 +91,12 @@ export function validateFeedback(name, email, content) {
     return 'Please write your message before submitting.';
   }
 
-  if (trimmedContent.length < 5) {
-    return 'Please write a more detailed message (at least 5 characters).';
+  if (trimmedContent.length < 3) {
+    return 'Please write a short message (at least 3 characters).';
   }
 
   if (trimmedContent.length > FEEDBACK_CONTENT_MAX_LENGTH) {
-    return 'Please keep your message under 500 characters.';
+    return 'Please keep your message under 1000 characters.';
   }
 
   return '';
@@ -115,10 +110,6 @@ export function getFriendlyFeedbackErrorMessage(error) {
     return rawMessage || 'Too many attempts right now. Please wait a little and try again.';
   }
 
-  if (status === 403 || /captcha/i.test(rawMessage)) {
-    return rawMessage || "I couldn't verify the submission just now. Please try once more.";
-  }
-
   if (status === 400) {
     return rawMessage || 'Please check your name, email, and message, then try again.';
   }
@@ -126,94 +117,11 @@ export function getFriendlyFeedbackErrorMessage(error) {
   return 'Failed to submit feedback. Please try again.';
 }
 
-export function buildFeedbackPayload({ name, email, content, captchaToken, website = '' }) {
+export function buildFeedbackPayload({ name, email, content, website = '' }) {
   return {
     name: normalizeForSubmit(sanitizeFeedbackNameInput(name)),
     email: normalizeFeedbackEmail(email),
     content: normalizeForSubmit(sanitizeFeedbackMessageInput(content)),
-    captchaToken,
     website: normalizeForSubmit(sanitizeFeedbackHoneypotInput(website)),
   };
-}
-
-export function loadRecaptchaScript(siteKey, documentRef = document) {
-  if (IS_DEV && !siteKey) {
-    return Promise.resolve(null);
-  }
-
-  if (!siteKey) {
-    return Promise.reject(new Error('Feedback CAPTCHA is not configured.'));
-  }
-
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('CAPTCHA is only available in the browser.'));
-  }
-
-  if (window.grecaptcha?.ready) {
-    return Promise.resolve(window.grecaptcha);
-  }
-
-  const existingScript = documentRef.getElementById(RECAPTCHA_SCRIPT_ID);
-
-  if (existingScript) {
-    return new Promise((resolve, reject) => {
-      existingScript.addEventListener('load', () => resolve(window.grecaptcha), { once: true });
-      existingScript.addEventListener('error', () => reject(new Error('Unable to load CAPTCHA.')), { once: true });
-    });
-  }
-
-  return new Promise((resolve, reject) => {
-    const script = documentRef.createElement('script');
-    script.id = RECAPTCHA_SCRIPT_ID;
-    script.src = `${RECAPTCHA_SRC}${encodeURIComponent(siteKey)}`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(window.grecaptcha);
-    script.onerror = () => reject(new Error('Unable to load CAPTCHA.'));
-    documentRef.head.appendChild(script);
-  });
-}
-
-export function setRecaptchaBadgeVisibility(isVisible, documentRef = document) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  const applyVisibility = () => {
-    const badge = documentRef.querySelector(RECAPTCHA_BADGE_SELECTOR);
-
-    if (!badge) {
-      return false;
-    }
-
-    badge.style.visibility = isVisible ? 'visible' : 'hidden';
-    badge.style.opacity = isVisible ? '1' : '0';
-    badge.style.pointerEvents = isVisible ? 'auto' : 'none';
-    return true;
-  };
-
-  if (applyVisibility()) {
-    return;
-  }
-
-  window.setTimeout(() => {
-    applyVisibility();
-  }, 250);
-}
-
-export async function getFeedbackCaptchaToken(siteKey) {
-  if (IS_DEV && !siteKey) {
-    return DEV_CAPTCHA_TOKEN;
-  }
-
-  const grecaptcha = await loadRecaptchaScript(siteKey);
-
-  return new Promise((resolve, reject) => {
-    grecaptcha.ready(() => {
-      grecaptcha
-        .execute(siteKey, { action: 'feedback_submit' })
-        .then(resolve)
-        .catch(() => reject(new Error('Unable to verify CAPTCHA. Please try again.')));
-    });
-  });
 }

@@ -5,23 +5,17 @@ import { toast } from 'react-toastify';
 import {
   buildFeedbackPayload,
   getFriendlyFeedbackErrorMessage,
-  getFeedbackCaptchaToken,
-  loadRecaptchaScript,
-  setRecaptchaBadgeVisibility,
   sanitizeFeedbackEmailInput,
   sanitizeFeedbackMessageInput,
   sanitizeFeedbackNameInput,
   validateFeedback,
 } from './feedbackForm.utils';
 
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
-
-function createFeedbackRequest({ name, email, content, captchaToken, website }) {
+function createFeedbackRequest({ name, email, content, website }) {
   return buildFeedbackPayload({
     name,
     email,
     content,
-    captchaToken,
     website,
   });
 }
@@ -49,28 +43,16 @@ export default function FeedbackForm({ isOpen, onClose }) {
     }
 
     clearCloseTimer();
+    setSubmitted(false);
+    setErrorMessage('');
     onClose();
   }
 
   useEffect(() => {
-    if (isOpen) {
-      setSubmitted(false);
-      setErrorMessage('');
-
-      if (RECAPTCHA_SITE_KEY) {
-        loadRecaptchaScript(RECAPTCHA_SITE_KEY)
-          .then(() => setRecaptchaBadgeVisibility(true))
-          .catch(() => {});
-      }
-    } else {
-      setRecaptchaBadgeVisibility(false);
-    }
-
     return () => {
       clearCloseTimer();
-      setRecaptchaBadgeVisibility(false);
     };
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -109,14 +91,11 @@ export default function FeedbackForm({ isOpen, onClose }) {
     setErrorMessage('');
 
     try {
-      const captchaToken = await getFeedbackCaptchaToken(RECAPTCHA_SITE_KEY);
-
       await portfolioApi.submitFeedback(
         createFeedbackRequest({
           name,
           email,
           content,
-          captchaToken,
           website,
         })
       );
@@ -251,7 +230,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
                 rows={4}
                 placeholder="Write your message..."
                 className="w-full resize-none rounded-xl border border-primary/20 px-4 py-3 text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                maxLength={500}
+                maxLength={1000}
                 autoComplete="off"
               />
             </div>
@@ -275,25 +254,7 @@ export default function FeedbackForm({ isOpen, onClose }) {
             </div>
 
             <p className="pt-2 text-center text-[11px] leading-5 text-primary/35">
-              Protected by reCAPTCHA. Google{' '}
-              <a
-                href="https://policies.google.com/privacy"
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2 hover:text-primary/50"
-              >
-                Privacy Policy
-              </a>{' '}
-              and{' '}
-              <a
-                href="https://policies.google.com/terms"
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2 hover:text-primary/50"
-              >
-                Terms of Service
-              </a>{' '}
-              apply.
+              Basic spam protection and rate limiting keep this form safe.
             </p>
           </form>
         )}

@@ -1,14 +1,13 @@
 const { body, matchedData, validationResult } = require('express-validator');
 const {
-  sanitizePlainText,
   sanitizeRichTextToPlainText,
   hasSafeNameCharacters,
 } = require('../lib/inputSecurity');
 
 const FEEDBACK_NAME_MIN_LENGTH = 2;
 const FEEDBACK_NAME_MAX_LENGTH = 50;
-const FEEDBACK_CONTENT_MIN_LENGTH = 5;
-const FEEDBACK_CONTENT_MAX_LENGTH = 500;
+const FEEDBACK_CONTENT_MIN_LENGTH = 3;
+const FEEDBACK_CONTENT_MAX_LENGTH = 1000;
 const FEEDBACK_NAME_SANITIZE_LIMIT = 200;
 const FEEDBACK_EMAIL_SANITIZE_LIMIT = 320;
 const FEEDBACK_CONTENT_SANITIZE_LIMIT = 2000;
@@ -39,7 +38,7 @@ const feedbackValidationRules = [
     .withMessage('Email must be plain text.')
     .bail()
     .customSanitizer((value) => sanitizeRichTextToPlainText(value, { maxLength: FEEDBACK_EMAIL_SANITIZE_LIMIT }).toLowerCase())
-    .isEmail()
+    .custom((value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
     .withMessage('Please enter a valid email address.'),
   body('content')
     .exists({ values: 'falsy' })
@@ -53,16 +52,6 @@ const feedbackValidationRules = [
     )
     .isLength({ min: FEEDBACK_CONTENT_MIN_LENGTH, max: FEEDBACK_CONTENT_MAX_LENGTH })
     .withMessage('Please write a more detailed message.'),
-  body('captchaToken')
-    .exists({ values: 'falsy' })
-    .withMessage('Please complete the CAPTCHA challenge.')
-    .bail()
-    .custom(isStringField)
-    .withMessage('Invalid CAPTCHA token.')
-    .bail()
-    .customSanitizer((value) => sanitizePlainText(value, { maxLength: 5000 }))
-    .isLength({ min: 20, max: 5000 })
-    .withMessage('Invalid CAPTCHA token.'),
 ];
 
 function handleFeedbackValidation(req, res, next) {

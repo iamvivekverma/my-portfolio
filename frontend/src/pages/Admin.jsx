@@ -314,7 +314,7 @@ function FeedbackOverview({ items, onRefresh, loading }) {
         <h3 className="text-lg font-semibold text-primary mb-2">Protection summary</h3>
         <p className="text-sm text-primary/70 leading-6">
           Feedback keeps the essentials only: sender name, reply email, message, IP, and submission time.
-          Requests are protected with validation, rate limiting, and reCAPTCHA.
+          Requests are protected with validation, rate limiting, and a spam trap.
         </p>
         <button
           type="button"
