@@ -63,7 +63,7 @@ export default function AboutSection() {
             <img
               src="/assets/images/vi.svg"
               alt="Vivek"
-              className="w-full h-full object-cover object-[50%_20%] scale-105"
+              className="w-full h-full object-cover object-[50%_20%]"
             />
           </div>
           
