@@ -6,7 +6,7 @@ export default function ProjectsSection() {
 
 
   return (
-    <section className="min-h-[calc(100vh-5rem)] lg:h-[calc(100vh-5rem)] lg:min-h-0 lg:overflow-hidden flex flex-col py-8 gap-8 lg:gap-6 justify-between">
+    <section className="min-h-[calc(100vh-5rem)] flex flex-col py-8 gap-8 justify-between">
 
       <div className="w-full overflow-hidden order-3 lg:order-1">
         <SlidingText speed={10} />
