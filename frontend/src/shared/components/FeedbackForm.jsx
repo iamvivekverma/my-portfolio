@@ -253,9 +253,6 @@ export default function FeedbackForm({ isOpen, onClose }) {
               </button>
             </div>
 
-            <p className="pt-2 text-center text-[11px] leading-5 text-primary/35">
-              Basic spam protection and rate limiting keep this form safe.
-            </p>
           </form>
         )}
       </div>
