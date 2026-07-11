@@ -253,6 +253,9 @@ export default function FeedbackForm({ isOpen, onClose }) {
               </button>
             </div>
 
+            <p className="pt-2 text-center text-[11px] leading-5 text-primary/35">
+              I&apos;d love to hear your thoughts — every message means a lot.
+            </p>
           </form>
         )}
       </div>
