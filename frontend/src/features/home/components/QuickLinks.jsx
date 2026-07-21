@@ -6,6 +6,8 @@ export default function QuickLinks() {
   const { data: about } = useAbout();
 
   const quickLinks = [
+    { label: "PDF 1", href: "/assets/MBBS_College_Options_2026.pdf", download: true },
+    { label: "PDF 2", href: "/assets/prer.pdf", download: true },
     { label: "Resume", href: "/resume", download: false },
     { label: "GitHub", href: toSafeUrl(about?.socials?.github, { fallback: "https://github.com/" }) },
     { label: "LinkedIn", href: toSafeUrl(about?.socials?.linkedin, { fallback: "https://www.linkedin.com/" }) },
