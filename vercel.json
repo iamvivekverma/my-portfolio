@@ -4,7 +4,7 @@
   "installCommand": "cd frontend && npm install",
   "rewrites": [
     {
-      "source": "/((?!.*\\.pdf$).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
