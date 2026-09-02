@@ -61,7 +61,7 @@ export default function AboutSection() {
           
           <div className="lg:col-span-8 overflow-hidden rounded-2xl lg:h-full">
             <img
-              src="/assets/images/vi.svg"
+              src="/assets/images/vivek.svg"
               alt="Vivek"
               className="w-full h-full object-cover object-[50%_20%]"
             />
