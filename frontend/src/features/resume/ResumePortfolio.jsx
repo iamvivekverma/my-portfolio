@@ -87,7 +87,7 @@ const contactItems = [
 
 const professionalExperience = [
   {
-    org: "EmberKids Chess Academy – Enterprise LMS (emberkids.netlify.app)",
+    org: "EmberKids Chess Academy – Enterprise LMS (emberkidschess.com)",
     location: "Client Project",
     role: "Lead Full Stack Engineer",
     date: "2026",

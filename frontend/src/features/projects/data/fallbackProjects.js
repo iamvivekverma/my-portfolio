@@ -25,7 +25,7 @@ export const FALLBACK_PROJECTS = [
       "Cron Jobs",
     ],
     badge: "Client Project",
-    liveLink: null,
+    liveLink: "https://emberkidschess.com",
     githubLink: null,
     order: 0,
     tint: "#1f7a3d",
