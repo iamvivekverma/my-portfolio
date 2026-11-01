@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaBars, FaBriefcase, FaGraduationCap, FaCode, FaUser } from "react-icons/fa";
+import { FaBars, FaBriefcase, FaGraduationCap, FaUser } from "react-icons/fa";
 import { GiCrossedBones } from "react-icons/gi";
 import { useState, useEffect } from "react";
 import { warmProjectsRoute } from "../preloadRoutes";
@@ -16,14 +16,12 @@ export default function Navbar() {
   const navItems = [
     { name: "Projects",   path: "/projects",   icon: FaBriefcase },
     { name: "Experience", path: "/experience", icon: FaGraduationCap },
-    { name: "Skills",     path: "/skills",     icon: FaCode },
     { name: "About",      path: "/about",      icon: FaUser },
   ];
 
   const subLabel = {
     "/projects":   "View my work",
     "/experience": "My journey",
-    "/skills":     "What I know",
     "/about":      "Who I am",
   };
 

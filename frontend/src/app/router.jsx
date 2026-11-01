@@ -9,7 +9,6 @@ import NotFound from "../pages/NotFound";
 import ResumePortfolio from "../features/resume/ResumePortfolio";
 
 const HeroSection = lazy(() => import("../features/home/components/HeroSection"));
-const SkillsSection = lazy(() => import("../features/skills/components/SkillsSection"));
 const ProjectsSection = lazy(loadProjectsRoute);
 const AboutSection = lazy(() => import("../features/about/components/AboutSection"));
 const ExperienceSection = lazy(() => import("../features/experience/components/ExperienceSection"));
@@ -28,7 +27,6 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: withSuspense(<HeroSection />) },
-      { path: "skills", element: withSuspense(<SkillsSection />) },
       { path: "projects", element: withSuspense(<ProjectsSection />) },
       { path: "about", element: withSuspense(<AboutSection />) },
       { path: "experience", element: withSuspense(<ExperienceSection />) },
