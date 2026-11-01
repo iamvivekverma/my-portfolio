@@ -278,7 +278,7 @@ const bodySlide = {
     x: 0,
     transition: { duration: 0.5, ease: EASE, staggerChildren: 0.06, delayChildren: 0.08 },
   },
-  exit: (d = 1) => ({ opacity: 0, x: d * -32, transition: { duration: 0.2 } },
+  exit: (d = 1) => ({ opacity: 0, x: d * -32, transition: { duration: 0.2 } }),
 };
 
 const rise = {
