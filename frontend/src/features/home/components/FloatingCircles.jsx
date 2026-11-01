@@ -1,208 +1,317 @@
-import { useState, useEffect } from "react";
-import SvgText from "./SvgText";
-import { motion as Motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion as Motion, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 
-const BASE_SIZE = 200;
-const NAV_CIRCLES = [
-  {
-    size: { base: 100, md: 140, lg: 160 },
-    top: "22%",
-    left: "3%",
-    textPosition: {
-      base: { x: 100, y: -40 },
-      md: { x: 200, y: -40 },
-      lg: { x: 180, y: -40 }
-    },
-    image: {
-      src: "/assets/images/projects.svg",
-      alt: "Projects",
-      top: 55,
-      left: 20,
-    },
-    name: "Projects",
-    path: "/projects",
-    scale: 1.25,
-  },
-  {
-    size: { base: 100, md: 160, lg: 180 },
-    top: "62%",
-    left: "15%",
-    textPosition: {
-      base: { x: 85, y: 50 },
-      md: { x: 110, y: 55 },
-      lg: { x: 110, y: 55 }
-    },
-    image: {
-      src: "/assets/images/about.svg",
-      alt: "About",
-      left: 18,
-      top: 18,
-    },
-    name: "About",
-    path: "/about",
-    scale: 1.2,
-  },
-  {
-    size: { base: 100, md: 180, lg: 200 },
-    top: "46%",
-    left: "80%",
-    textPosition: {
-      base: { x: -105, y: 50 },
-      md: { x: -150, y: 60 },
-      lg: { x: -150, y: 60 }
-    },
-    image: {
-      src: "/assets/images/bot.svg",
-      alt: "Experience",
-      top: 12,
-      left: 20,
-    },
-    name: "Experience",
-    path: "/experience",
-    scale: 1.05,
-  },
-  {
-    size: { base: 100, md: 130, lg: 150 },
-    top: "10%",
-    left: "69%",
-    textPosition: {
-      base: { x: -90, y: 50 },
-      md: { x: -115, y: 55 },
-      lg: { x: -115, y: 55 }
-    },
-    image: {
-      src: "/assets/images/skills.svg",
-      alt: "Skills",
-      top: 15,
-      left: 50,
-    },
-    name: "Skills",
-    path: "/skills",
-    scale: 1.25,
-  },
-];
+import SvgText from "./SvgText";
+import useMediaQuery from "../../../hooks/useMediaQuery";
 
-const FLOATING_CIRCLES = [
-  { special: true, size: { base: 50, md: 70, lg: 90 }, top: "5%", left: "55%" },
-  { special: true, size: { base: 15, md: 22, lg: 30 }, top: "16%", left: "30%" },
-  { special: true, size: { base: 40, md: 55, lg: 70 }, top: "85%", left: "45%" },
-  { special: true, size: { base: 15, md: 22, lg: 30 }, top: "80%", left: "70%" },
-  { size: { base: 20, md: 30, lg: 40 }, top: "35%", left: "85%" },
-  { size: { base: 30, md: 45, lg: 55 }, top: "58%", left: "8%" },
-];
+import { NAV_GAP, DOT_GAP } from "../burst";
+import {
+  CIRCLES_START,
+  makeSideEntry,
+  sideMotion,
+  useStageFrame,
+} from "./Entrance";
 
-export default function FloatingCircles({ setWow }) {
-  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+import {
+  NAV_CIRCLES,
+  FLOATING_CIRCLES,
+  BASE_SIZE,
+  POP_ORDER,
+} from "../circlesData";
 
-  useEffect(() => {
-    let timeoutId = null;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setScreenWidth(window.innerWidth);
-      }, 50); 
-    };
+// Organic criss-cross / pseudo-random order so text doesn't appear in a rigid circle
+const TEXT_SEQUENCE = ["/skills", "/about", "/experience", "/projects"];
 
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(timeoutId);
-    };
-  }, []);
+/**
+ * Truly responsive navigation circles layout for all screen sizes (mobile to desktop).
+ *
+ * - Entrance animation runs once and never replays on window resize.
+ * - Buttery smooth transition for circle sizes across all breakpoints.
+ * - Nav text position preserved exactly as original.
+ * - No text scaling transitions.
+ * - Below LG: organic, relaxed sequential fade-in (one by one).
+ * - Back to LG: simultaneous unified fade-out.
+ * - On LG: normal hover visibility.
+ */
+export default function FloatingCircles({ setWow, isSettled }) {
+  const reduceMotion = useReducedMotion();
+  const boxRef = useRef(null);
+  const frame = useStageFrame(boxRef, null, reduceMotion);
 
-  const isMobile = screenWidth < 1024;
-  const currentSizeKey = screenWidth < 500 ? "base" : isMobile ? "md" : "lg";
+  // Breakpoints: phone (< 500px), sm tablet (500-767px), md tablet (768-1023px), lg desktop (1024px+)
+  const isSm = useMediaQuery("(min-width: 500px)");
+  const isMd = useMediaQuery("(min-width: 768px)");
+  const isLg = useMediaQuery("(min-width: 1024px)");
+
+  // Hover state for LG screens
+  const [hoveredCircle, setHoveredCircle] = useState(null);
+
+  const getSize = (sizeObj) => {
+    if (isLg) return sizeObj.lg;
+    if (isMd) return sizeObj.md;
+    if (isSm) return sizeObj.sm;
+    return sizeObj.base;
+  };
+
+  const getTextPosition = (textPosObj) => {
+    if (isLg) return textPosObj.lg;
+    if (isMd) return textPosObj.md;
+    if (isSm) return textPosObj.sm;
+    return textPosObj.base;
+  };
+
+  const ready = reduceMotion || isSettled || frame !== null;
+
+  // Cache entrance animation props so re-renders / resizes NEVER recreate keyframes
+  const motionCacheRef = useRef(new Map());
+
+  const motionFor = (key, circle, size, delay, options = {}) => {
+    if (reduceMotion || isSettled || !frame) return {};
+
+    if (motionCacheRef.current.has(key)) {
+      return motionCacheRef.current.get(key);
+    }
+
+    const entry = makeSideEntry(
+      {
+        cx: (frame.w * parseFloat(circle.left)) / 100 + size / 2,
+        cy: (frame.h * parseFloat(circle.top)) / 100 + size / 2,
+        size,
+      },
+      frame,
+      options,
+    );
+
+    const m = sideMotion(entry, delay);
+    motionCacheRef.current.set(key, m);
+    return m;
+  };
 
   return (
-    <div className="absolute inset-0">
-      {FLOATING_CIRCLES.map((circle, index) => {
-        const dynamicSize = circle.size[currentSizeKey];
-        return (
-          <Motion.div
-            key={`float-${index}`}
-            className={`absolute rounded-full z-10 ${
-              circle.special ? "bg-[#ffa102] lg:bg-[#ffc760]" : "bg-[#fdcb6e]"
-            }`}
-            style={{
-              width: dynamicSize,
-              height: dynamicSize,
-              top: circle.top,
-              left: circle.left,
-            }}
-            animate={{
-              y: [0, -15 - index * 8, 0],
-              x: [0, index % 2 === 0 ? 20 : -20, 0],
-            }}
-            transition={{
-              duration: 2 + index * 0.3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        );
-      })}
+    <div
+      ref={boxRef}
+      className="pointer-events-none absolute inset-0"
+    >
+      {/* Decorative floating dots */}
+      {ready &&
+        FLOATING_CIRCLES.map((circle, index) => {
+          const size = getSize(circle.size);
+          const entranceProps = motionFor(
+            `float-${index}`,
+            circle,
+            size,
+            CIRCLES_START + 0.2 + index * DOT_GAP,
+            { roll: false },
+          );
 
-      {NAV_CIRCLES.map((circle, index) => {
-        const dynamicSize = circle.size[currentSizeKey];
-        const scaleFactor = dynamicSize / BASE_SIZE;
-        const textPos = circle.textPosition[currentSizeKey];
-
-        return (
-          <Link key={circle.path} to={circle.path}>
+          return (
             <Motion.div
-              className="absolute cursor-pointer z-20 bg-fill lg:bg-[#ffa102] lg:hover:bg-fill flex items-center justify-center rounded-full group will-change-transform"
+              key={`float-${index}`}
+              className="absolute z-10 transition-[width,height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
               style={{
-                width: dynamicSize,
-                height: dynamicSize,
+                width: size,
+                height: size,
                 top: circle.top,
                 left: circle.left,
               }}
-              animate={{
-                y: [0, -12 - index * 3, 0],
-                x: [0, index % 2 === 0 ? 10 : -10, 0],
-              }}
-              whileHover={!isMobile ? { scale: circle.scale } : undefined}
-              transition={{
-                duration: 2.5 + index * 0.3,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: index * 0.1,
-                scale: { duration: 0.25, repeat: 0 },
-              }}
-              onMouseEnter={() => {
-                setWow(true);
-              }}
-              onMouseLeave={() => {
-                setWow(false);
-              }}
+              initial={isSettled ? false : entranceProps.initial}
+              animate={isSettled ? undefined : entranceProps.animate}
+              transition={isSettled ? undefined : entranceProps.transition}
             >
-              <Motion.img
-                src={circle.image.src}
-                alt={circle.image.alt}
-                className="absolute block lg:hidden lg:group-hover:block"
-                style={{
-                  width: 130 * scaleFactor,
-                  height: 130 * scaleFactor,
-                  left: circle.image.left * scaleFactor,
-                  top: circle.image.top * scaleFactor,
+              <Motion.div
+                className={`h-full w-full rounded-full transition-colors duration-300 ${
+                  circle.special
+                    ? "bg-[#ffa102] lg:bg-[#fdcb6e]"
+                    : "bg-[#fdcb6e]"
+                }`}
+                style={{ borderRadius: "50%" }}
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        y: [0, -2, 0],
+                        scaleX: [1, 1.04, 0.98, 1],
+                        scaleY: [1, 0.96, 1.03, 1],
+                      }
+                }
+                transition={{
+                  duration: 2.8 + index * 0.18,
+                  repeat: Infinity,
+                  ease: [0.37, 0, 0.63, 1],
+                  delay: index * 0.12,
                 }}
-                initial={{ opacity: 0, scale: 0.8, y: 40 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
               />
-
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{
-                  transform: `translate(${textPos.x * scaleFactor}px, ${textPos.y * scaleFactor}px)`,
-                }}
-              >
-                <SvgText scale={scaleFactor}>{circle.name}</SvgText>
-              </div>
             </Motion.div>
-          </Link>
-        );
-      })}
+          );
+        })}
+
+      {/* Navigation circles */}
+      {ready &&
+        NAV_CIRCLES.map((circle, index) => {
+          const size = getSize(circle.size);
+          const scaleFactor = size / BASE_SIZE;
+          const textPos = getTextPosition(circle.textPosition);
+
+          const popDelay =
+            CIRCLES_START +
+            POP_ORDER.indexOf(circle.path) * NAV_GAP;
+
+          const entranceProps = motionFor(
+            circle.path,
+            circle,
+            size,
+            popDelay,
+            { roll: false },
+          );
+
+          // Sequence index for fade-in below LG (organic criss-cross order)
+          const seqIndex = TEXT_SEQUENCE.indexOf(circle.path);
+
+          // Visibility:
+          // On LG: visible ONLY when hovered.
+          // Below LG: visible.
+          const isTextVisible = isLg
+            ? hoveredCircle === circle.path
+            : true;
+
+          // Intelligent delay & duration:
+          // 1. Initial entrance (!isSettled): wait 2.1s for avatar & circles to land and settle.
+          // 2. Resized from LG to below LG (isSettled): wait 0.55s for circle size transition to settle.
+          // 3. Stagger each item by 0.34s with 0.55s smooth fade duration.
+          const baseDelay = isSettled ? 0.55 : 2.1;
+          const textDelay = baseDelay + seqIndex * 0.34;
+
+          return (
+            <Link
+              key={circle.path}
+              to={circle.path}
+              aria-label={circle.name}
+            >
+              <Motion.div
+                className="pointer-events-auto absolute z-20 lg:z-30 transition-[width,height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                style={{
+                  width: size,
+                  height: size,
+                  top: circle.top,
+                  left: circle.left,
+                }}
+                initial={isSettled ? false : entranceProps.initial}
+                animate={isSettled ? undefined : entranceProps.animate}
+                transition={isSettled ? undefined : entranceProps.transition}
+              >
+                <Motion.div
+                  className="group relative flex h-full w-full cursor-pointer items-center justify-center rounded-full lg:bg-[#ffa102] bg-fill transition-colors duration-300 lg:hover:bg-fill"
+                  style={{ borderRadius: "50%" }}
+                  whileHover={{ scale: circle.scale }}
+                  transition={{
+                    scale: {
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 16,
+                    },
+                  }}
+                  onMouseEnter={() => {
+                    setHoveredCircle(circle.path);
+                    setWow(true);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredCircle(null);
+                    setWow(false);
+                  }}
+                >
+                  {/* Circle breathing animation */}
+                  <Motion.div
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full"
+                    style={{ borderRadius: "50%" }}
+                    animate={
+                      reduceMotion
+                        ? undefined
+                        : {
+                            scale: [1, 1.08, 1],
+                          }
+                    }
+                    transition={{
+                      duration: 3 + index * 0.4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: index * 0.15,
+                    }}
+                  />
+
+                  {/* Hover illustration */}
+                  <Motion.img
+                    src={circle.image.src}
+                    alt={circle.image.alt}
+                    className="pointer-events-none absolute transition-[width,height,left,top] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                    style={{
+                      width: 130 * scaleFactor,
+                      height: 130 * scaleFactor,
+                      left: circle.image.left * scaleFactor,
+                      top: circle.image.top * scaleFactor,
+                    }}
+                    initial={false}
+                    animate={
+                      isLg
+                        ? hoveredCircle === circle.path
+                          ? { opacity: 1, scale: 1, y: 0 }
+                          : { opacity: 0, scale: 0.85, y: 25 }
+                        : { opacity: 1, scale: 1, y: 0 }
+                    }
+                    transition={{
+                      duration: 0.25,
+                      ease: "easeOut",
+                    }}
+                  />
+
+                  {/* Nav text: Exact original position preserved without transform interference */}
+                  <div
+                    className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                    style={{
+                      transform: `translate(
+                        ${textPos.x * scaleFactor}px,
+                        ${textPos.y * scaleFactor}px
+                      )`,
+                    }}
+                  >
+                    <Motion.div
+                      className="z-50"
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: isTextVisible ? 1 : 0,
+                      }}
+                      transition={
+                        isTextVisible
+                          ? isLg
+                            ? { duration: 0.25, delay: 0, ease: "easeOut" }
+                            : {
+                                duration: 0.55,
+                                delay: textDelay,
+                                ease: "easeOut",
+                              }
+                          : {
+                              duration: 0.22,
+                              delay: 0, // all fade out together when returning to LG!
+                              ease: "easeOut",
+                            }
+                      }
+                    >
+                      <SvgText
+                        scale={scaleFactor}
+                        isLg={isLg}
+                        isMd={isMd}
+                        isSm={isSm}
+                      >
+                        {circle.name}
+                      </SvgText>
+                    </Motion.div>
+                  </div>
+                </Motion.div>
+              </Motion.div>
+            </Link>
+          );
+        })}
     </div>
   );
 }

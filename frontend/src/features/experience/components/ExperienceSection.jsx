@@ -1,379 +1,161 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { useRef, useState } from 'react';
+import { PiGearSixBold, PiGraduationCapBold, PiCodeBold, PiBrainBold, PiStackBold, PiCaretLeftBold, PiCaretRightBold } from 'react-icons/pi';
+import SlidingText from '../../../shared/components/SlidingText';
+import SectionFooter from '../../../shared/components/SectionFooter';
 import { useExperience } from '../../../hooks/usePortfolioData';
+import art1 from '../assets/1.webp';
+import art2 from '../assets/2.webp';
+import art3 from '../assets/3.webp';
+import art4 from '../assets/4.webp';
+import art5 from '../assets/5.gif';
 
-const CHAPTERS = [
-  {
-    id: 'ch1',
-    number: '01',
-    era: '2020 – 2023',
-    category: 'EDUCATION',
-    title: 'The Engineer',
-    subtitle: 'Diploma in Mechanical Engineering',
-    body: 'Started my academic journey in mechanical engineering — learning how systems work, how forces interact, and how precision matters. Built analytical thinking that still shapes every line of code I write today.',
-    tags: ['Problem Solving', 'Systems Thinking', 'Engineering Principles'],
-    accent: 'var(--color-accent)',
-    stat: { value: '3', label: 'Years of engineering foundation' },
-  },
-  {
-    id: 'ch2',
-    number: '02',
-    era: '2024 →',
-    category: 'EDUCATION',
-    title: 'The Pivot',
-    subtitle: 'B.Tech CSE — Arya College, RTU',
-    body: 'Made the bold switch from mechanical to computer science via lateral entry. Diving deep into CS fundamentals, data structures, algorithms — and discovering a genuine love for building software.',
-    tags: ['CS Fundamentals', 'Algorithms', 'Data Structures', 'Lateral Entry'],
-    accent: 'var(--color-accent)',
-    stat: { value: '7th', label: 'Semester — Final year' },
-  },
-  {
-    id: 'ch3',
-    number: '03',
-    era: '2025',
-    category: 'TRANSITION',
-    title: 'The Spark',
-    subtitle: 'Discovered Web Development',
-    body: 'Wrote my first React component and something clicked. The ability to build real things that real people use — instantly. Fell deep into the MERN stack, Tailwind, Framer Motion. Clean code became my obsession.',
-    tags: ['React', 'Node.js', 'MongoDB', 'TailwindCSS', 'REST APIs'],
-    accent: 'var(--color-accent)',
-    stat: { value: 'MERN', label: 'Full-stack from day one' },
-  },
-  {
-    id: 'ch4',
-    number: '04',
-    era: '2025',
-    category: 'SKILL',
-    title: 'The AI Edge',
-    subtitle: 'AI Tools & Prompt Engineering',
-    body: 'Embraced AI not as a shortcut but as a development superpower. Mastered prompt engineering, integrated Claude and other AI APIs into real projects. Now every project I build has AI thinking baked in.',
-    tags: ['Prompt Engineering', 'Claude API', 'AI Integration', 'LLM Workflows'],
-    accent: 'var(--color-accent)',
-    stat: { value: 'AI+', label: 'Every project is AI-powered' },
-  },
-  {
-    id: 'ch5',
-    number: '05',
-    era: 'Present',
-    category: 'NOW',
-    title: 'The Builder',
-    subtitle: 'Full-Stack Developer — Open to Work',
-    body: 'Building scalable web applications that solve real problems. Actively seeking internship & freelance opportunities. Every day is a new commit, a new feature, a new thing learned.',
-    tags: ['Open to Freelance', 'Internship Ready', 'Full-Stack', 'Rajasthan, India'],
-    accent: 'var(--color-accent)',
-    stat: { value: '∞', label: 'Commits and counting' },
-    isPulse: true,
-  },
+const ART = [art1, art2, art3, art4, art5];
+// One icon per chapter, all from the same Phosphor set: gear, degree, code, brain, stack.
+const ICONS = [PiGearSixBold, PiGraduationCapBold, PiCodeBold, PiBrainBold, PiStackBold];
+
+// Shown until the API answers, and whenever it has nothing yet.
+const FALLBACK = [
+  { era: '2020 – 2023', title: 'The Workshop', subtitle: 'Diploma in Mechanical Engineering',
+    body: 'Before getting into coding, I spent three years studying mechanical engineering. I learned how machines work, how things are designed, and why even small details matter. Those years gave me a different way of looking at problems, something that still helps me today as a developer.' },
+  { era: '2024 →', title: 'The Shift', subtitle: 'B.Tech in Computer Science & Engineering',
+    body: "In 2024, I went through a difficult phase in my personal life that changed the way I looked at things. I decided to channel that pain into something meaningful and took a leap from Mechanical Engineering to Computer Science. Starting over wasn't easy, but as I began learning to code and building things of my own, I found something that genuinely excited me. What started as a way to move forward slowly became the career I wanted to pursue." },
+  { era: '2025', title: 'The Craft', subtitle: 'Full-Stack Web Development',
+    body: 'I fell in love with the immediacy of the web—the rare space where rigorous backend architecture meets intuitive, tactile interface design. I dedicated myself to building end-to-end applications from scratch: structuring modular APIs, designing resilient schemas, and obsessing over interaction details so that complex workflows feel effortless to the user.' },
+  { era: '2026', title: 'Intelligent Systems', subtitle: 'LLM Workflows & Systems Integration',
+    body: 'After exploring AI tools and intelligent systems, I began integrating AI into my development workflow to solve problems more efficiently. I use LLMs, smart prompting, and AI-powered automation to streamline repetitive tasks, improve productivity, and build reliable software. My focus is on combining intelligent systems with solid engineering principles to create solutions that are fast, accurate, and scalable.' },
+  { era: 'Now', title: 'The Builder', subtitle: 'Full-Stack Product Engineering',
+    body: 'Today, I build production-grade web applications and digital tools designed to last. From architecting scalable platforms with role-based access and secure payment rails to crafting responsive, high-performance user interfaces, my focus is singular: delivering real value through resilient code and thoughtful product design.' },
 ];
 
-function LiveCounter() {
-  const [text, setText] = useState('');
-  useEffect(() => {
-    const start = new Date('2025-04-01');
-    const tick = () => {
-      const ms   = Date.now() - start;
-      const days = Math.floor(ms / 86400000);
-      const hrs  = Math.floor((ms % 86400000) / 3600000);
-      const mins = Math.floor((ms % 3600000) / 60000);
-      setText(`${days}d ${hrs}h ${mins}m`);
-    };
-    tick();
-    const id = setInterval(tick, 30000);
-    return () => clearInterval(id);
-  }, []);
-  return <span>{text}</span>;
-}
+const normalize = (item, i) => ({
+  era: item.era || item.year || '',
+  title: item.title || '',
+  subtitle: item.subtitle || '',
+  body: item.body || item.description || '',
+  art: item.art || item.image || ART[i] || null,
+});
 
-// ── CHAPTER CARD ─────────────────────────────────────────────────────
-function ChapterCard({ chapter, isActive, onClick }) {
-  const accent = chapter?.accent;
-  
-  return (
-    <Motion.div
-      layout
-      onClick={onClick}
-      className="relative flex-shrink-0 cursor-pointer select-none"
-      style={{ width: isActive ? 480 : 200 }}
-      animate={{ width: isActive ? 480 : 200 }}
-      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-    >
-      <div
-        className="relative h-full rounded-2xl overflow-hidden border transition-all duration-500"
-        style={{
-          borderColor: isActive ? accent : 'rgba(69,14,22,0.1)',
-          background: isActive
-            ? `linear-gradient(135deg, var(--color-bg) 0%, ${accent}18 100%)`
-            : 'var(--color-light)',
-        }}
-      >
-        <div
-          className="absolute top-4 right-4 font-bold leading-none select-none pointer-events-none transition-all duration-500"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: isActive ? '7rem' : '4rem',
-            color: accent,
-            opacity: isActive ? 0.12 : 0.18,
-            lineHeight: 1,
-          }}
-        >
-          {chapter?.number || ''}
-        </div>
-
-        <div
-          className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl transition-all duration-500"
-          style={{ background: accent, opacity: isActive ? 1 : 0.4 }}
-        />
-
-        <div className="p-6 h-full flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <span
-              className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full"
-              style={{ background: `${accent}25`, color: accent }}
-            >
-              {chapter?.category || 'EXPERIENCE'}
-            </span>
-            <span className="text-xs text-primary/30 font-medium tabular-nums">
-              {chapter?.era || ''}
-            </span>
-          </div>
-
-          <h2
-            className="font-bold text-primary leading-tight mb-1 transition-all duration-300"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: isActive ? '1.75rem' : '1.1rem',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {chapter?.title || ''}
-          </h2>
-
-          <p className="text-xs text-primary/45 font-medium mb-4">{chapter?.subtitle || ''}</p>
-
-          {/* Expanded content */}
-          <AnimatePresence>
-            {isActive && (
-              <Motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.3, delay: 0.15 }}
-                className="flex flex-col gap-4 flex-1"
-              >
-                <p className="text-sm text-primary/65 leading-relaxed">{chapter?.body || ''}</p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {chapter?.tags?.map(tag => (
-                    <span
-                      key={tag}
-                      className="text-[11px] font-medium px-2.5 py-1 rounded-full border"
-                      style={{
-                        borderColor: `${accent}50`,
-                        color: accent,
-                        background: `${accent}12`,
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {chapter?.stat && (
-                  <div
-                    className="mt-auto flex items-end gap-3 pt-4 border-t"
-                    style={{ borderColor: `${accent}25` }}
-                  >
-                    <span
-                      className="font-bold leading-none"
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '2.5rem',
-                        color: accent,
-                        letterSpacing: '-0.03em',
-                      }}
-                    >
-                      {chapter.stat.value}
-                    </span>
-                    <span className="text-xs text-primary/40 leading-tight pb-1">
-                      {chapter.stat.label}
-                    </span>
-                    {chapter.isPulse && (
-                      <div className="ml-auto flex items-center gap-1.5 pb-1">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-                        </span>
-                        <span className="text-xs font-medium text-green-600">Live</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Motion.div>
-            )}
-          </AnimatePresence>
-
-          {!isActive && (
-            <div className="mt-auto">
-              <div className="text-[10px] text-primary/25 uppercase tracking-wider">Tap to expand</div>
-            </div>
-          )}
-        </div>
-      </div>
-    </Motion.div>
-  );
-}
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const eraText = (era) => era.replace(/\s*→/, ' – now'); // "2024 →" -> "2024 – now"
+const isGif = (src) => typeof src === 'string' && /\.gif(\?|$)|^data:image\/gif/.test(src);
 
 export default function ExperienceSection() {
-  const [active, setActive] = useState('ch3');
-  const { data: experienceItems } = useExperience();
-  const scrollRef = useRef(null);
+  const { data } = useExperience();
+  const chapters = (data?.length ? data : FALLBACK).map(normalize);
+  const last = chapters.length - 1;
+  const [index, setIndex] = useState(0);
+  const track = useRef(null);
 
-  const chapters = experienceItems.length
-    ? experienceItems.map((item, i) => ({
-        id: `api-${item._id || i}`,
-        number: item.number || String(i + 1).padStart(2, '0'),
-        era: item.era || item.year || CHAPTERS[i % CHAPTERS.length].era,
-        category: (item.category || 'EXPERIENCE').toUpperCase(),
-        title: item.title,
-        subtitle: item.subtitle || '',
-        body: item.body || item.description || '',
-        tags: item.tags || [],
-        accent: item.accent,
-        stat: item.stat || null,
-        isPulse: item.isPulse || false,
-      }))
-    : CHAPTERS;
+  const active = Math.min(index, last);
+  const cur = chapters[active];
 
-  const activeChapterId = chapters.some((chapter) => chapter.id === active) ? active : chapters[0]?.id;
+  // Chapters sit side by side in a hidden horizontal track that snaps one at a time.
+  // Swipe, trackpad-scroll, press the arrow keys or use the two buttons.
+  const go = (i) => {
+    const el = track.current;
+    if (!el) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollTo({ left: clamp(i, 0, last) * el.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
+  };
+  const onScroll = (e) => {
+    const el = e.currentTarget;
+    setIndex(clamp(Math.round(el.scrollLeft / el.clientWidth), 0, last));
+  };
+  const onKeyDown = (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    go(active + (e.key === 'ArrowRight' ? 1 : -1));
+  };
 
-  useEffect(() => {
-    const el = scrollRef.current?.querySelector(`[data-id="${activeChapterId}"]`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [activeChapterId]);
-
-  const activeChapter = chapters.find(c => c.id === activeChapterId) || chapters[0];
+  const railItems = chapters.map((ch, i) => {
+    const Icon = ICONS[i % ICONS.length];
+    return { text: ch.title.toUpperCase(), icon: <Icon />, alt: ch.title };
+  });
 
   return (
-    <section className="min-h-[calc(100vh-5rem)] flex flex-col px-5 justify-between py-8 gap-8">
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium tracking-widest uppercase text-primary/35 mb-2">
-            My story
-          </p>
-          <h1
-            className="text-primary leading-none"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.8rem, 5vw, 5rem)',
-              letterSpacing: '-0.035em',
-              fontWeight: 800,
-            }}
+    <section className="min-h-[calc(100vh-5rem)] flex flex-col py-8 gap-8 tall:gap-6 tall:h-[calc(100vh-5rem)] tall:overflow-hidden">
+      <div className="w-full overflow-hidden order-3 lg:order-1">
+        <SlidingText items={railItems} speed={18} />
+      </div>
+
+      <div className="order-2 px-5 flex-1 flex flex-col tall:min-h-0">
+        <article
+          aria-roledescription="carousel"
+          aria-label="Experience"
+          onKeyDown={onKeyDown}
+          className="relative flex flex-1 flex-col overflow-hidden rounded-3xl bg-primary text-bg tall:min-h-0"
+        >
+          <p className="sr-only" aria-live="polite">{cur.title}, {eraText(cur.era)}</p>
+
+          <div
+            ref={track}
+            onScroll={onScroll}
+            className="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain scrollbar-hide"
           >
-            The Journey
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-6 lg:gap-8 pb-1">
-          {[
-            { val: '1+',   label: 'Years building' },
-            { val: 'MERN', label: 'Core stack' },
-            { val: '5+',   label: 'Projects shipped' },
-          ].map(s => (
-            <div key={s.label} className="text-center lg:text-right">
-              <p
-                className="text-2xl font-bold text-primary leading-none"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                {s.val}
-              </p>
-              <p className="text-[10px] text-primary/35 uppercase tracking-wide mt-0.5">{s.label}</p>
-            </div>
-          ))}
-          <div className="hidden lg:flex flex-col items-end border-l border-primary/10 pl-6">
-            <p className="text-xs text-primary/35 uppercase tracking-wide">Coding for</p>
-            <p
-              className="text-base font-bold text-primary tabular-nums"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              <LiveCounter />
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        {chapters.map((ch) => {
-          const accent = ch?.accent;
-          return (
-            <button
-              key={ch.id}
-              onClick={() => setActive(ch.id)}
-              className="flex items-center gap-2 group"
-              title={ch?.title}
-            >
+            {chapters.map((ch, i) => (
               <div
-                className="h-1 rounded-full transition-all duration-500"
-                style={{
-                  width: active === ch.id ? 48 : 20,
-                  background: active === ch.id ? accent : 'rgba(69,14,22,0.12)',
-                }}
-              />
-              <span
-                className="text-[10px] font-bold hidden lg:block transition-all duration-300"
-                style={{ color: active === ch.id ? accent : 'rgba(69,14,22,0.25)' }}
+                key={i}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${i + 1} of ${chapters.length}`}
+                aria-hidden={i !== active}
+                className="grid w-full shrink-0 snap-center snap-always gap-6 p-6 sm:p-8 lg:grid-cols-[1.5fr_1fr] lg:items-center lg:gap-[clamp(1.5rem,2vw,2rem)] lg:px-[clamp(6rem,8vw,7rem)] lg:py-[clamp(1.1rem,3.4vh,2.4rem)]"
               >
-                {ch?.number}
-              </span>
-            </button>
-          );
-        })}
-        <span className="ml-2 text-xs text-primary/30 tabular-nums">
-          {chapters.findIndex(c => c.id === active) + 1} / {chapters.length}
-        </span>
+                <div className="order-2 lg:order-1">
+                  <span className="inline-block rounded-full bg-accent px-3.5 py-1 text-xs font-semibold tabular-nums text-primary">
+                    {eraText(ch.era)}
+                  </span>
+                  <h2 className="mt-[clamp(0.4rem,1.4vh,0.75rem)] text-[clamp(1.8rem,min(3.6vw,5.6vh),3.6rem)] font-semibold leading-[1.02] tracking-tight">
+                    {ch.title}
+                  </h2>
+                  <p className="mt-1 text-sm font-medium text-accent sm:text-base">{ch.subtitle}</p>
+                  <p className="mt-[clamp(0.5rem,1.8vh,1rem)] max-w-[70ch] text-[clamp(0.8125rem,min(1.05vw,1.9vh),1.0625rem)] leading-[1.6] text-bg/85">{ch.body}</p>
+                </div>
+
+                {/* Line art is tinted yellow through a mask; the animated GIF is full colour, so it fills the tile as is. */}
+                <div className="order-1 lg:order-2 relative h-[25rem] overflow-hidden rounded-2xl">
+                  {ch.art && (isGif(ch.art) ? (
+                    <img src={ch.art} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <span
+                      role="presentation"
+                      className="absolute inset-4 bg-accent"
+                      style={{ WebkitMask: `url(${ch.art}) center / contain no-repeat`, mask: `url(${ch.art}) center / contain no-repeat` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Left and right toggles: Kept in exact original position with modern glassmorphism, micro-interactions, and visual feedback */}
+          {[-1, 1].map((dir) => {
+            const to = active + dir;
+            const off = to < 0 || to > last;
+            const Icon = dir < 0 ? PiCaretLeftBold : PiCaretRightBold;
+            const word = dir < 0 ? 'Previous' : 'Next';
+            return (
+              <button
+                key={dir}
+                type="button"
+                disabled={off}
+                onClick={() => go(to)}
+                aria-label={off ? `${word} chapter` : `${word}: ${chapters[to].title}`}
+                className={`absolute z-10 top-[calc(1.25rem+10rem)] grid h-10 w-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-bg/15 backdrop-blur-md border border-bg/20 text-bg text-xl shadow-lg transition-all duration-200 hover:bg-accent hover:text-primary hover:border-accent hover:scale-110 active:scale-95 disabled:pointer-events-none disabled:opacity-20 sm:top-[calc(1.75rem+10rem)] lg:top-1/2 lg:h-12 lg:w-12 lg:text-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${dir < 0 ? 'left-3 sm:left-4 lg:left-5' : 'right-3 sm:right-4 lg:right-5'}`}
+              >
+                <Icon />
+              </button>
+            );
+          })}
+        </article>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex gap-5 overflow-x-auto xl:mx-auto scrollbar-hide pb-2"
-        style={{ height: 'clamp(340px, 45vh, 480px)' }}
-      >
-        {chapters.map((ch) => (
-          <div key={ch.id} data-id={ch.id} className="h-full">
-            <ChapterCard
-              chapter={ch}
-              isActive={active === ch.id}
-              onClick={() => setActive(ch.id)}
-            />
-          </div>
-        ))}
-      </div>
-
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-4 border-t border-primary/8">
-        {activeChapter && (
-          <div className="flex items-start gap-4">
-            <div
-              className="w-1 self-stretch rounded-full flex-shrink-0"
-              style={{ background: activeChapter.accent }}
-            />
-            <blockquote className="text-sm text-primary/50 italic leading-relaxed max-w-md">
-              "From engineering mechanics to web development — every step builds the foundation
-              for creating exceptional digital experiences."
-            </blockquote>
-          </div>
-        )}
-
-        <div className="flex items-center gap-3 flex-shrink-0 justify-end w-full lg:w-auto">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-            </span>
-            <span className="text-sm font-medium text-green-700">Open to work</span>
-          </div>
-          <span className="text-primary/20">·</span>
-          <span className="text-sm text-primary/45">Rajasthan, India</span>
-        </div>
-      </div>
+      <SectionFooter
+        className="flex flex-col px-5 w-full order-1 lg:order-3 lg:flex-row lg:items-end"
+        title="The Journey"
+        tagline="The future belongs to those who believe in the beauty of their dreams."
+        description="— Eleanor Roosevelt"
+      />
     </section>
   );
 }

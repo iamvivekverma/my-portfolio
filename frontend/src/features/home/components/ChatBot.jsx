@@ -126,7 +126,7 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-[200]">
 
       {/* ── CHAT WINDOW ── */}
       <AnimatePresence>
@@ -136,7 +136,7 @@ export default function ChatBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.94 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="absolute bottom-20 right-0 z-50"
+            className="absolute bottom-20 right-0 z-[100]"
             style={{
               width: "min(340px, calc(100vw - 48px))",
               height: "440px",

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import MobileOverlay from "./MobileOverlay";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import FeedbackProvider from "../../shared/components/FeedbackProvider";
 import { warmProjectsRoute } from "../preloadRoutes";
 
 export default function RootLayout() {
@@ -34,13 +34,14 @@ export default function RootLayout() {
   }
 
   return (
-    <div className="app">
-      <MobileOverlay />
-      <Navbar />
-      <main>
-        <Outlet />
-      </main>
-      {showFooter && <Footer />}
-    </div>
+    <FeedbackProvider>
+      <div className="app">
+        <Navbar />
+        <main>
+          <Outlet />
+        </main>
+        {showFooter && <Footer />}
+      </div>
+    </FeedbackProvider>
   );
 }

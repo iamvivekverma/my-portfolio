@@ -1,0 +1,16 @@
+.star-border {
+  position: relative;
+  border-radius: var(--star-border-radius, 12px);
+  background-color: var(--star-border-surface, #ffffff);
+  color: var(--star-border-text, #18181b);
+  overflow: visible;
+  isolation: isolate;
+  display: inline-flex;
+}
+
+.star-border__light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}

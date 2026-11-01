@@ -1,12 +1,11 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaLinkedin, FaGithub, FaInstagram, FaYoutube, FaComment } from "react-icons/fa";
-import FeedbackForm from "../../shared/components/FeedbackForm";
+import { useFeedback } from "../../shared/components/feedbackContext";
 import { toSafeEmailText, toSafeMailtoHref, toSafeUrl } from "../../shared/utils/urlSafety";
 import { useAbout } from "../../hooks/usePortfolioData";
 
 export default function Footer() {
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { openFeedback } = useFeedback();
   const { data: about } = useAbout();
   const fallbackEmail = 'iamvivek.verma@icloud.com';
   const safeEmail = toSafeEmailText(about?.email, fallbackEmail);
@@ -34,7 +33,7 @@ export default function Footer() {
             <img src="/assets/images/bot.png" alt="Bot illustration" className="w-full h-full" />
           </div>
           <h2 className="text-base font-bold text-primary leading-snug" style={{ fontFamily: "var(--font-display)" }}>
-            Ready to turn ideas into<br />scalable web solutions?
+            Catching ideas is impossible—<br />unless we&apos;re a team
           </h2>
         </div>
 
@@ -65,8 +64,9 @@ export default function Footer() {
             );
           })}
           <button
-            onClick={() => setIsFeedbackOpen(true)}
+            onClick={openFeedback}
             title="Share Feedback"
+            aria-label="Share feedback"
             className="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center hover:bg-primary hover:border-primary transition-all duration-300 group cursor-pointer"
           >
             <FaComment className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
@@ -76,8 +76,6 @@ export default function Footer() {
         <p className="text-xs text-primary/40 -mt-4">
           Designed, developed & maintained by Vivek
         </p>
-
-        <FeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       </div>
     </footer>
   );
