@@ -34,26 +34,60 @@ function isProduction() {
   return process.env.NODE_ENV === 'production';
 }
 
-function getAllowedOrigins() {
-  const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173,http://localhost:5174';
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
 
-  return rawOrigins
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '';
+  const configured = rawOrigins
     .split(',')
-    .map((origin) => origin.trim())
+    .map((o) => o.trim())
     .filter(Boolean);
+
+  const staticAllowed = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'https://whovivekverma.cv',
+    'https://www.whovivekverma.cv',
+    'https://vivek.work',
+    'https://www.vivek.work',
+    ...configured,
+  ];
+
+  if (staticAllowed.includes(origin)) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname.toLowerCase();
+
+    if (
+      host === 'whovivekverma.cv' ||
+      host.endsWith('.whovivekverma.cv') ||
+      host === 'vivek.work' ||
+      host.endsWith('.vivek.work') ||
+      host.endsWith('.vercel.app') ||
+      host === 'localhost' ||
+      host === '127.0.0.1'
+    ) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
 }
 
 app.use(
   cors({
     origin(origin, callback) {
-      const allowedOrigins = getAllowedOrigins();
-
-      // Allow all origins for development
-      if (process.env.NODE_ENV === 'development') {
-        return callback(null, true);
-      }
-
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 
