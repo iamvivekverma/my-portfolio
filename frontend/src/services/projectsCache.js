@@ -1,4 +1,5 @@
 import { buildApiUrl, portfolioApi } from './api';
+import { FALLBACK_PROJECTS } from '../features/projects/data/fallbackProjects';
 
 const PROJECTS_CACHE_KEY = 'portfolio_projects_cache_v1';
 const PROJECTS_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -112,9 +113,16 @@ export async function primeProjectsCache({ force = false } = {}) {
   inFlightRequest = portfolioApi
     .getProjects()
     .then((response) => {
-      const data = persistCache(response?.data || []);
+      const projects = Array.isArray(response?.data) && response.data.length > 0
+        ? response.data
+        : FALLBACK_PROJECTS;
+      const data = persistCache(projects);
       preloadProjectImages(data);
       return data;
+    })
+    .catch((err) => {
+      console.warn('API error fetching projects, using fallback projects:', err?.message);
+      return FALLBACK_PROJECTS;
     })
     .finally(() => {
       inFlightRequest = null;

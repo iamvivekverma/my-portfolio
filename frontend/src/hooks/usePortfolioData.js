@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { portfolioApi } from "../services/api";
 import { getCachedProjects, primeProjectsCache } from "../services/projectsCache";
+import { FALLBACK_PROJECTS } from "../features/projects/data/fallbackProjects";
 import { useApiResource } from "./useApiResource";
 
 export function useAbout() {
@@ -26,8 +27,11 @@ export function useProjects() {
   const loader = useCallback(() => primeProjectsCache(), []);
 
   return useApiResource(loader, {
-    initialData: cachedProjects || [],
-    enabled: !cachedProjects,
+    initialData:
+      Array.isArray(cachedProjects) && cachedProjects.length > 0
+        ? cachedProjects
+        : FALLBACK_PROJECTS,
+    enabled: true,
   });
 }
 

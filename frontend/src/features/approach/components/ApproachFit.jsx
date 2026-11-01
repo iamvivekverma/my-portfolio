@@ -23,7 +23,7 @@ export default function ApproachFit() {
   return (
     <section className="flex h-[calc(100vh-5rem)] flex-col gap-[1.6vh] overflow-hidden py-4" style={{ fontFamily: FONT }}>
       <div className="order-1 w-full overflow-hidden [&_.icon]:!h-[clamp(44px,7.5vw,56px)] [&_.icon]:!w-[clamp(44px,7.5vw,56px)] [&_.stroke-text-slide]:text-[clamp(4rem,8vw,5.5rem)]!">
-        <SlidingText items={RAIL} speed={18} height="clamp(65px, 8.5vh, 95px)" />
+        <SlidingText items={RAIL} speed={7} height="clamp(65px, 8.5vh, 95px)" />
       </div>
 
       <div className="order-2 flex min-h-0 flex-1 flex-col  px-5">

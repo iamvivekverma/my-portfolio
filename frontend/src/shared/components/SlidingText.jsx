@@ -8,7 +8,7 @@ const defaultItems = [
 // A half of the rail has to be wider than the screen or a gap shows up when it loops.
 const MIN_ITEMS = 4;
 
-export default function SlidingText({ items = defaultItems, speed = 20, className = "", height = "clamp(65px, 8.5vh, 95px)" }) {
+export default function SlidingText({ items = defaultItems, speed = 7, className = "", height = "clamp(65px, 8.5vh, 95px)" }) {
   const source = items.length ? items : defaultItems;
 
   // Short lists get repeated so the loop never shows a gap. The duration is scaled by the

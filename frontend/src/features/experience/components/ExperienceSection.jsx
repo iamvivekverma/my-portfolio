@@ -75,7 +75,7 @@ export default function ExperienceSection() {
   return (
     <section className="min-h-[calc(100vh-5rem)] flex flex-col py-8 gap-8 tall:gap-6 tall:h-[calc(100vh-5rem)] tall:overflow-hidden">
       <div className="w-full overflow-hidden order-3 lg:order-1">
-        <SlidingText items={railItems} speed={18} />
+        <SlidingText items={railItems} speed={7} />
       </div>
 
       <div className="order-2 px-5 flex-1 flex flex-col tall:min-h-0">

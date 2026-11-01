@@ -8,7 +8,7 @@ export default function ProjectsSection() {
 
       {/* relative z-10 keeps the text above the card shadows, which fall over the neighbouring blocks */}
       <div className="relative z-10 w-full overflow-hidden order-3 lg:order-1">
-        <SlidingText speed={10} />
+        <SlidingText speed={7} />
       </div>
 
       {/*
